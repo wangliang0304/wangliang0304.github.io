@@ -133,130 +133,92 @@
 
         .footer {
             text-align: center;
-            padding: 1rem;
+            padding: 1.5rem 1rem;
             margin-top: 2rem;
             background-color: var(--header-color);
             color: white;
+            position: relative;
+            width: 100%;
         }
 
-        /* 短链接工具样式 */
-        #shortLinkTool .input-group {
-            display: flex;
-            margin-bottom: 1rem;
+        .footer p {
+            margin: 0.3rem 0;
         }
 
-        #shortLinkTool input {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
-            font-size: 1rem;
-        }
-
-        #shortLinkTool input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        #shortLinkTool button {
-            padding: 0.75rem 1rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s;
-        }
-
-        #shortLinkTool button:hover {
-            background-color: var(--primary-dark);
-        }
-
-        #shortLinkTool button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-
-        #shortLinkTool .result {
+        .contact-info {
             margin-top: 1rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            display: none;
-        }
-
-        #shortLinkTool #shortUrl {
-            color: var(--primary-color);
-            word-break: break-all;
-        }
-
-        #shortLinkTool .status {
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 4px;
-            display: none;
-        }
-
-        #shortLinkTool .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        #shortLinkTool .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        #shortLinkTool .action-btn {
-            padding: 0.3rem 0.7rem;
-            margin-right: 0.3rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 0.9rem;
         }
 
-        #shortLinkTool .action-btn:hover {
-            background-color: var(--primary-dark);
+        .contact-info span {
+            font-weight: bold;
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            display: inline-block;
+            margin-top: 0.3rem;
         }
 
-        #shortLinkTool .test-btn {
-            background-color: var(--secondary-color);
-        }
-
-        #shortLinkTool .test-btn:hover {
-            background-color: var(--secondary-dark);
-        }
-
-        #shortLinkTool .copy-btn {
-            background-color: var(--accent-color);
-        }
-
-        #shortLinkTool .copy-btn:hover {
-            background-color: var(--accent-dark);
+        /* 工具卡片内容样式 */
+        .tool-content p {
+            margin: 0.5rem 0;
+            line-height: 1.5;
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+
             .tools-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
 
-            #shortLinkTool .input-group {
-                flex-direction: column;
+            .tool-card {
+                margin-bottom: 1rem;
             }
 
-            #shortLinkTool input {
-                border-radius: 4px;
-                margin-bottom: 0.5rem;
+            .tool-header h2 {
+                font-size: 1.2rem;
             }
 
-            #shortLinkTool button {
-                border-radius: 4px;
+            .btn {
+                display: block;
                 width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* 超小屏幕设备的额外调整 */
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.8rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .tool-header {
+                padding: 0.8rem;
+            }
+
+            .tool-content {
+                padding: 0.8rem;
+            }
+
+            .tool-footer {
+                padding: 0.8rem;
             }
         }
     </style>
@@ -274,22 +236,12 @@
                 <div class="tool-header">
                     <h2>短网址转换工具</h2>
                 </div>
-                <div class="tool-content" id="shortLinkTool">
-                    <div class="input-group">
-                        <input type="url" id="longUrl" placeholder="请输入长网址 (例如: https://example.com/very/long/url...)">
-                        <button id="convertBtn">转换</button>
-                    </div>
-
-                    <div id="status" class="status"></div>
-
-                    <div class="result" id="result">
-                        <p>短网址: <a href="#" id="shortUrl" target="_blank"></a></p>
-                        <button id="copyBtn" class="action-btn copy-btn">复制链接</button>
-                        <button id="testBtn" class="action-btn test-btn">测试链接</button>
-                    </div>
+                <div class="tool-content">
+                    <p>快速生成短网址，方便分享和传播。</p>
+                    <p>支持各种长链接转换，使用TinyURL API生成可靠的短链接。</p>
                 </div>
                 <div class="tool-footer">
-                    <button id="historyBtn" class="btn">查看历史记录</button>
+                    <a href="short_link_url.html" class="btn" target="_blank">立即使用</a>
                 </div>
             </div>
 
@@ -309,298 +261,21 @@
         </div>
     </div>
 
-    <!-- 历史记录模态框 -->
-    <div id="historyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
-        <div style="background-color: white; margin: 10% auto; padding: 20px; width: 80%; max-width: 800px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">历史记录</h2>
-                <button id="closeHistoryBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
-            </div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <table id="historyTable" style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd; background-color: #f2f2f2;">长网址</th>
-                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd; background-color: #f2f2f2;">短网址</th>
-                            <th style="padding: 12px; text-align: left; border-bottom: 1px solid #ddd; background-color: #f2f2f2;">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                        <!-- 历史记录将在这里动态生成 -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+
 
     <footer class="footer">
         <p>&copy; 2025 Joker的工具箱 | 实用AI工具合集</p>
-        <p style="margin-top: 0.5rem;">微信联系方式：<span style="font-weight: bold;">jokerceshi666</span></p>
+        <div class="contact-info">
+            <p>微信联系方式</p>
+            <span>jokerceshi666</span>
+        </div>
     </footer>
 
     <script>
+        // 简化的脚本，只包含基本功能
         document.addEventListener('DOMContentLoaded', function() {
-            // 短链接工具相关元素
-            const longUrlInput = document.getElementById('longUrl');
-            const convertBtn = document.getElementById('convertBtn');
-            const resultDiv = document.getElementById('result');
-            const shortUrlLink = document.getElementById('shortUrl');
-            const copyBtn = document.getElementById('copyBtn');
-            const testBtn = document.getElementById('testBtn');
-            const historyBody = document.getElementById('historyBody');
-            const statusDiv = document.getElementById('status');
-            const historyBtn = document.getElementById('historyBtn');
-            const historyModal = document.getElementById('historyModal');
-            const closeHistoryBtn = document.getElementById('closeHistoryBtn');
-
-            // 历史记录模态框
-            historyBtn.addEventListener('click', function() {
-                loadHistory();
-                historyModal.style.display = 'block';
-            });
-
-            closeHistoryBtn.addEventListener('click', function() {
-                historyModal.style.display = 'none';
-            });
-
-            // 点击模态框外部关闭
-            window.addEventListener('click', function(event) {
-                if (event.target === historyModal) {
-                    historyModal.style.display = 'none';
-                }
-            });
-
-            // 转换按钮点击事件
-            convertBtn.addEventListener('click', convertToShortUrl);
-
-            // 输入框回车事件
-            longUrlInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    convertToShortUrl();
-                }
-            });
-
-            // 复制按钮点击事件
-            copyBtn.addEventListener('click', copyToClipboard);
-
-            // 测试按钮点击事件
-            testBtn.addEventListener('click', testShortUrl);
-
-            // 转换长网址为短网址
-            function convertToShortUrl() {
-                const longUrl = longUrlInput.value.trim();
-
-                // 验证URL
-                if (!isValidUrl(longUrl)) {
-                    showStatus('请输入有效的网址 (例如: https://example.com)', 'error');
-                    return;
-                }
-
-                convertBtn.disabled = true;
-                convertBtn.textContent = '转换中...';
-
-                // 使用TinyURL API
-                fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('网络响应不正常');
-                        }
-                        return response.text();
-                    })
-                    .then(shortUrl => {
-                        if (shortUrl === 'Error') {
-                            throw new Error('无法生成短网址');
-                        }
-
-                        // 显示结果
-                        shortUrlLink.textContent = shortUrl;
-                        shortUrlLink.href = shortUrl;
-                        resultDiv.style.display = 'block';
-
-                        // 保存到历史记录
-                        saveToHistory(longUrl, shortUrl);
-
-                        showStatus('短网址生成成功!', 'success');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showStatus('生成短网址失败: ' + error.message, 'error');
-                    })
-                    .finally(() => {
-                        convertBtn.disabled = false;
-                        convertBtn.textContent = '转换';
-                    });
-            }
-
-            // 验证URL格式
-            function isValidUrl(string) {
-                try {
-                    new URL(string);
-                    return true;
-                } catch (_) {
-                    return false;
-                }
-            }
-
-            // 复制到剪贴板
-            function copyToClipboard() {
-                const shortUrl = shortUrlLink.textContent;
-                navigator.clipboard.writeText(shortUrl)
-                    .then(() => {
-                        showStatus('已复制到剪贴板', 'success');
-                    })
-                    .catch(err => {
-                        showStatus('复制失败: ' + err, 'error');
-                    });
-            }
-
-            // 测试短网址
-            function testShortUrl() {
-                const shortUrl = shortUrlLink.textContent;
-                window.open(shortUrl, '_blank');
-            }
-
-            // 保存到历史记录
-            function saveToHistory(longUrl, shortUrl) {
-                let history = [];
-                try {
-                    const storedHistory = localStorage.getItem('shortUrlHistory');
-                    history = storedHistory ? JSON.parse(storedHistory) : [];
-                } catch (e) {
-                    console.error('解析历史记录失败:', e);
-                    history = [];
-                }
-
-                // 检查是否已存在
-                const existingIndex = history.findIndex(item => item.longUrl === longUrl);
-                if (existingIndex !== -1) {
-                    history[existingIndex].shortUrl = shortUrl;
-                } else {
-                    history.unshift({ longUrl, shortUrl });
-                }
-
-                // 限制历史记录数量
-                if (history.length > 50) {
-                    history = history.slice(0, 50);
-                }
-
-                localStorage.setItem('shortUrlHistory', JSON.stringify(history));
-            }
-
-            // 加载历史记录
-            function loadHistory() {
-                let history = [];
-                try {
-                    const storedHistory = localStorage.getItem('shortUrlHistory');
-                    history = storedHistory ? JSON.parse(storedHistory) : [];
-                } catch (e) {
-                    console.error('解析历史记录失败:', e);
-                    history = [];
-                }
-
-                historyBody.innerHTML = '';
-
-                if (history.length === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 12px;">暂无历史记录</td></tr>';
-                    return;
-                }
-
-                history.forEach((item, index) => {
-                    const row = document.createElement('tr');
-
-                    const longUrlCell = document.createElement('td');
-                    longUrlCell.style.padding = '12px';
-                    longUrlCell.style.borderBottom = '1px solid #ddd';
-                    longUrlCell.style.wordBreak = 'break-all';
-                    longUrlCell.textContent = item.longUrl.length > 30 ? item.longUrl.substring(0, 30) + '...' : item.longUrl;
-                    longUrlCell.title = item.longUrl;
-
-                    const shortUrlCell = document.createElement('td');
-                    shortUrlCell.style.padding = '12px';
-                    shortUrlCell.style.borderBottom = '1px solid #ddd';
-                    shortUrlCell.style.wordBreak = 'break-all';
-                    const shortUrlLink = document.createElement('a');
-                    shortUrlLink.href = item.shortUrl;
-                    shortUrlLink.textContent = item.shortUrl;
-                    shortUrlLink.target = '_blank';
-                    shortUrlLink.style.color = '#3498db';
-                    shortUrlCell.appendChild(shortUrlLink);
-
-                    const actionCell = document.createElement('td');
-                    actionCell.style.padding = '12px';
-                    actionCell.style.borderBottom = '1px solid #ddd';
-
-                    const testBtn = document.createElement('button');
-                    testBtn.textContent = '测试';
-                    testBtn.className = 'action-btn test-btn';
-                    testBtn.style.marginRight = '5px';
-                    testBtn.onclick = () => window.open(item.shortUrl, '_blank');
-
-                    const copyBtn = document.createElement('button');
-                    copyBtn.textContent = '复制';
-                    copyBtn.className = 'action-btn copy-btn';
-                    copyBtn.style.marginRight = '5px';
-                    copyBtn.onclick = () => {
-                        navigator.clipboard.writeText(item.shortUrl)
-                            .then(() => showStatus('已复制到剪贴板', 'success'))
-                            .catch(err => showStatus('复制失败: ' + err, 'error'));
-                    };
-
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = '删除';
-                    deleteBtn.className = 'action-btn';
-                    deleteBtn.style.backgroundColor = '#e74c3c';
-                    deleteBtn.onclick = () => deleteHistoryItem(index);
-
-                    actionCell.appendChild(testBtn);
-                    actionCell.appendChild(copyBtn);
-                    actionCell.appendChild(deleteBtn);
-
-                    row.appendChild(longUrlCell);
-                    row.appendChild(shortUrlCell);
-                    row.appendChild(actionCell);
-
-                    historyBody.appendChild(row);
-                });
-            }
-
-            // 删除历史记录项
-            function deleteHistoryItem(index) {
-                let history = [];
-                try {
-                    const storedHistory = localStorage.getItem('shortUrlHistory');
-                    history = storedHistory ? JSON.parse(storedHistory) : [];
-                } catch (e) {
-                    console.error('解析历史记录失败:', e);
-                    history = [];
-                }
-
-                history.splice(index, 1);
-                localStorage.setItem('shortUrlHistory', JSON.stringify(history));
-                loadHistory();
-                showStatus('已删除历史记录', 'success');
-            }
-
-            // 显示状态消息
-            function showStatus(message, type) {
-                statusDiv.textContent = message;
-                statusDiv.className = `status ${type}`;
-                statusDiv.style.display = 'block';
-
-                // 3秒后自动隐藏
-                setTimeout(() => {
-                    statusDiv.style.display = 'none';
-                }, 3000);
-            }
-
-            // 输入框自动清除无效输入
-            longUrlInput.addEventListener('blur', function() {
-                const url = this.value.trim();
-                if (url && !isValidUrl(url)) {
-                    showStatus('请输入有效的网址 (例如: https://example.com)', 'error');
-                    this.value = '';
-                }
-            });
+            // 可以在这里添加一些基本交互功能
+            console.log('Joker的工具箱已加载完成');
         });
     </script>
 </body>
