@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>短网址转换工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #longUrl {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+        #longUrl:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        #shortUrl {
+            color: #3498db;
+            word-break: break-all;
+        }
+        .history {
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            word-break: break-all;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            margin-right: 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .action-btn:hover {
+            background-color: #2980b9;
+        }
+        .test-btn {
+            background-color: #2ecc71;
+        }
+        .test-btn:hover {
+            background-color: #27ae60;
+        }
+        .copy-btn {
+            background-color: #9b59b6;
+        }
+        .copy-btn:hover {
+            background-color: #8e44ad;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+            }
+            #longUrl {
+                border-radius: 4px;
+                margin-bottom: 10px;
+            }
+            button {
+                border-radius: 4px;
+                width: 100%;
+            }
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            .action-btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>短网址转换工具</h1>
+        
+        <div class="input-group">
+            <input type="url" id="longUrl" placeholder="请输入长网址 (例如: https://example.com/very/long/url...)">
+            <button id="convertBtn">转换为短网址</button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="result" id="result">
+            <p>短网址: <a href="#" id="shortUrl" target="_blank"></a></p>
+            <button id="copyBtn" class="action-btn copy-btn">复制链接</button>
+            <button id="testBtn" class="action-btn test-btn">测试链接</button>
+        </div>
+        
+        <div class="history">
+            <h2>历史记录</h2>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>长网址</th>
+                        <th>短网址</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <!-- 历史记录将在这里动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const longUrlInput = document.getElementById('longUrl');
+            const convertBtn = document.getElementById('convertBtn');
+            const resultDiv = document.getElementById('result');
+            const shortUrlLink = document.getElementById('shortUrl');
+            const copyBtn = document.getElementById('copyBtn');
+            const testBtn = document.getElementById('testBtn');
+            const historyBody = document.getElementById('historyBody');
+            const statusDiv = document.getElementById('status');
+            
+            // 加载历史记录
+            loadHistory();
+            
+            // 转换按钮点击事件
+            convertBtn.addEventListener('click', convertToShortUrl);
+            
+            // 输入框回车事件
+            longUrlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    convertToShortUrl();
+                }
+            });
+            
+            // 复制按钮点击事件
+            copyBtn.addEventListener('click', copyToClipboard);
+            
+            // 测试按钮点击事件
+            testBtn.addEventListener('click', testShortUrl);
+            
+            // 转换长网址为短网址
+            function convertToShortUrl() {
+                const longUrl = longUrlInput.value.trim();
+                
+                // 验证URL
+                if (!isValidUrl(longUrl)) {
+                    showStatus('请输入有效的网址 (例如: https://example.com)', 'error');
+                    return;
+                }
+                
+                convertBtn.disabled = true;
+                convertBtn.textContent = '转换中...';
+                
+                // 使用TinyURL API
+                fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('网络响应不正常');
+                        }
+                        return response.text();
+                    })
+                    .then(shortUrl => {
+                        if (shortUrl === 'Error') {
+                            throw new Error('无法生成短网址');
+                        }
+                        
+                        // 显示结果
+                        shortUrlLink.textContent = shortUrl;
+                        shortUrlLink.href = shortUrl;
+                        resultDiv.style.display = 'block';
+                        
+                        // 保存到历史记录
+                        saveToHistory(longUrl, shortUrl);
+                        
+                        showStatus('短网址生成成功!', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showStatus('生成短网址失败: ' + error.message, 'error');
+                    })
+                    .finally(() => {
+                        convertBtn.disabled = false;
+                        convertBtn.textContent = '转换为短网址';
+                    });
+            }
+            
+            // 验证URL格式
+            function isValidUrl(string) {
+                try {
+                    new URL(string);
+                    return true;
+                } catch (_) {
+                    return false;
+                }
+            }
+            
+            // 复制到剪贴板
+            function copyToClipboard() {
+                const shortUrl = shortUrlLink.textContent;
+                navigator.clipboard.writeText(shortUrl)
+                    .then(() => {
+                        showStatus('已复制到剪贴板', 'success');
+                    })
+                    .catch(err => {
+                        showStatus('复制失败: ' + err, 'error');
+                    });
+            }
+            
+            // 测试短网址
+            function testShortUrl() {
+                const shortUrl = shortUrlLink.textContent;
+                window.open(shortUrl, '_blank');
+            }
+            
+            // 保存到历史记录
+            function saveToHistory(longUrl, shortUrl) {
+                let history = [];
+                try {
+                    const storedHistory = localStorage.getItem('shortUrlHistory');
+                    history = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error('解析历史记录失败:', e);
+                    history = [];
+                }
+                
+                // 检查是否已存在
+                const existingIndex = history.findIndex(item => item.longUrl === longUrl);
+                if (existingIndex !== -1) {
+                    history[existingIndex].shortUrl = shortUrl;
+                } else {
+                    history.unshift({ longUrl, shortUrl });
+                }
+                
+                // 限制历史记录数量
+                if (history.length > 50) {
+                    history = history.slice(0, 50);
+                }
+                
+                localStorage.setItem('shortUrlHistory', JSON.stringify(history));
+                loadHistory();
+            }
+            
+            // 加载历史记录
+            function loadHistory() {
+                let history = [];
+                try {
+                    const storedHistory = localStorage.getItem('shortUrlHistory');
+                    history = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error('解析历史记录失败:', e);
+                    history = [];
+                }
+                
+                historyBody.innerHTML = '';
+                
+                if (history.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">暂无历史记录</td></tr>';
+                    return;
+                }
+                
+                history.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const longUrlCell = document.createElement('td');
+                    longUrlCell.textContent = item.longUrl.length > 50 ? item.longUrl.substring(0, 50) + '...' : item.longUrl;
+                    longUrlCell.title = item.longUrl;
+                    
+                    const shortUrlCell = document.createElement('td');
+                    const shortUrlLink = document.createElement('a');
+                    shortUrlLink.href = item.shortUrl;
+                    shortUrlLink.textContent = item.shortUrl;
+                    shortUrlLink.target = '_blank';
+                    shortUrlCell.appendChild(shortUrlLink);
+                    
+                    const actionCell = document.createElement('td');
+                    
+                    const testBtn = document.createElement('button');
+                    testBtn.textContent = '测试';
+                    testBtn.className = 'action-btn test-btn';
+                    testBtn.onclick = () => window.open(item.shortUrl, '_blank');
+                    
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = '复制';
+                    copyBtn.className = 'action-btn copy-btn';
+                    copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(item.shortUrl)
+                            .then(() => showStatus('已复制到剪贴板', 'success'))
+                            .catch(err => showStatus('复制失败: ' + err, 'error'));
+                    };
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.className = 'action-btn delete-btn';
+                    deleteBtn.onclick = () => deleteHistoryItem(index);
+                    
+                    actionCell.appendChild(testBtn);
+                    actionCell.appendChild(copyBtn);
+                    actionCell.appendChild(deleteBtn);
+                    
+                    row.appendChild(longUrlCell);
+                    row.appendChild(shortUrlCell);
+                    row.appendChild(actionCell);
+                    
+                    historyBody.appendChild(row);
+                });
+            }
+            
+            // 删除历史记录项
+            function deleteHistoryItem(index) {
+                let history = [];
+                try {
+                    const storedHistory = localStorage.getItem('shortUrlHistory');
+                    history = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error('解析历史记录失败:', e);
+                    history = [];
+                }
+                
+                history.splice(index, 1);
+                localStorage.setItem('shortUrlHistory', JSON.stringify(history));
+                loadHistory();
+                showStatus('已删除历史记录', 'success');
+            }
+            
+            // 显示状态消息
+            function showStatus(message, type) {
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                statusDiv.style.display = 'block';
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 输入框自动清除无效输入
+            longUrlInput.addEventListener('blur', function() {
+                const url = this.value.trim();
+                if (url && !isValidUrl(url)) {
+                    showStatus('请输入有效的网址 (例如: https://example.com)', 'error');
+                    this.value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
