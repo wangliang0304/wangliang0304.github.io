@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL 编码/解码工具 - Joker的工具箱</title>
+    <style>
+        :root {
+            --primary-color: #00c3ff;
+            --primary-dark: #0099cc;
+            --secondary-color: #00ff9d;
+            --secondary-dark: #00cc7a;
+            --accent-color: #ff00c8;
+            --accent-dark: #cc00a0;
+            --danger-color: #ff3860;
+            --danger-dark: #cc2d4d;
+            --bg-color: #0a1929;
+            --card-bg: #0f2942;
+            --text-color: #e0e0e0;
+            --border-radius: 8px;
+            --shadow: 0 4px 20px rgba(0, 195, 255, 0.15);
+            --glow: 0 0 10px rgba(0, 195, 255, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 195, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 200, 0.05) 0%, transparent 20%),
+                linear-gradient(135deg, rgba(10, 25, 41, 0.8) 0%, rgba(15, 41, 66, 0.8) 100%);
+            background-attachment: fixed;
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            border: 1px solid rgba(0, 195, 255, 0.2);
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(0, 195, 255, 0.03) 50%,
+                transparent 100%
+            );
+            z-index: -1;
+            animation: glowSweep 8s linear infinite;
+        }
+
+        @keyframes glowSweep {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(0, 195, 255, 0.3);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid rgba(0, 195, 255, 0.2);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background-color: rgba(15, 41, 66, 0.8);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab.active {
+            background-color: rgba(0, 195, 255, 0.1);
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: var(--glow);
+        }
+
+        .tab:hover:not(.active) {
+            background-color: rgba(0, 195, 255, 0.05);
+        }
+
+        .tab::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 195, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .tab:hover::before {
+            transform: translateX(100%);
+        }
+
+        .input-area, .output-area {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(0, 195, 255, 0.3);
+            background-color: rgba(10, 25, 41, 0.7);
+            color: var(--text-color);
+            font-size: 16px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: var(--glow);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+            z-index: -1;
+        }
+
+        button:hover::before {
+            transform: translateX(100%);
+        }
+
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: #0a1929;
+        }
+
+        .primary-btn:hover {
+            background-color: var(--primary-dark);
+            box-shadow: 0 0 15px rgba(0, 195, 255, 0.5);
+        }
+
+        .secondary-btn {
+            background-color: var(--secondary-color);
+            color: #0a1929;
+        }
+
+        .secondary-btn:hover {
+            background-color: var(--secondary-dark);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
+        }
+
+        .accent-btn {
+            background-color: var(--accent-color);
+            color: #0a1929;
+        }
+
+        .accent-btn:hover {
+            background-color: var(--accent-dark);
+            box-shadow: 0 0 15px rgba(255, 0, 200, 0.5);
+        }
+
+        .danger-btn {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+
+        .danger-btn:hover {
+            background-color: var(--danger-dark);
+            box-shadow: 0 0 15px rgba(255, 56, 96, 0.5);
+        }
+
+        .status {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success {
+            background-color: rgba(0, 255, 157, 0.1);
+            color: var(--secondary-color);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+        }
+
+        .error {
+            background-color: rgba(255, 56, 96, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(255, 56, 96, 0.3);
+        }
+
+        .history {
+            margin-top: 40px;
+            border-top: 1px solid rgba(0, 195, 255, 0.2);
+            padding-top: 20px;
+        }
+
+        .history h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px rgba(0, 195, 255, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 195, 255, 0.1);
+        }
+
+        th {
+            background-color: rgba(0, 195, 255, 0.1);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        tr {
+            background-color: rgba(15, 41, 66, 0.5);
+            transition: background-color 0.3s;
+        }
+
+        tr:hover {
+            background-color: rgba(0, 195, 255, 0.05);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            background-color: var(--accent-color);
+            color: #0a1929;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--accent-dark);
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger-dark);
+        }
+
+        .back-to-home {
+            display: inline-block;
+            margin-top: 30px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .back-to-home:hover {
+            color: var(--primary-dark);
+            text-shadow: 0 0 5px rgba(0, 195, 255, 0.5);
+        }
+
+        .back-to-home::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: var(--primary-color);
+            transition: width 0.3s;
+        }
+
+        .back-to-home:hover::after {
+            width: 100%;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .tab {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            textarea {
+                height: 120px;
+            }
+        }
+
+        /* 超小屏幕设备的额外调整 */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .action-btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 5px;
+                margin-right: 0;
+            }
+
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            .history h2 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 195, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 195, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 195, 255, 0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* 科技感装饰元素 */
+        .tech-decoration {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(0, 195, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .tech-decoration-1 {
+            top: -100px;
+            right: -100px;
+        }
+
+        .tech-decoration-2 {
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .tech-decoration::before, .tech-decoration::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .tech-decoration::before {
+            width: 70%;
+            height: 70%;
+            border: 1px dashed rgba(0, 195, 255, 0.2);
+            animation: rotate 20s linear infinite;
+        }
+
+        .tech-decoration::after {
+            width: 40%;
+            height: 40%;
+            border: 1px solid rgba(0, 195, 255, 0.3);
+            animation: rotate 10s linear infinite reverse;
+        }
+
+        @keyframes rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tech-decoration tech-decoration-1"></div>
+        <div class="tech-decoration tech-decoration-2"></div>
+        
+        <h1>URL 编码/解码工具</h1>
+        
+        <div class="tabs">
+            <div class="tab active" id="encodeTab">URL 编码</div>
+            <div class="tab" id="decodeTab">URL 解码</div>
+        </div>
+        
+        <div class="input-area">
+            <label class="label" for="inputText">输入文本:</label>
+            <textarea id="inputText" placeholder="请输入需要处理的文本..."></textarea>
+        </div>
+        
+        <div class="buttons">
+            <button id="processBtn" class="primary-btn">编码</button>
+            <button id="copyInputBtn" class="accent-btn">复制输入</button>
+            <button id="clearInputBtn" class="danger-btn">清空输入</button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="output-area">
+            <label class="label" for="outputText">处理结果:</label>
+            <textarea id="outputText" placeholder="处理结果将显示在这里..." readonly></textarea>
+        </div>
+        
+        <div class="buttons">
+            <button id="copyOutputBtn" class="secondary-btn">复制结果</button>
+            <button id="clearOutputBtn" class="danger-btn">清空结果</button>
+            <button id="swapBtn" class="accent-btn">交换输入/输出</button>
+        </div>
+        
+        <div class="history">
+            <h2>历史记录</h2>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>原始文本</th>
+                        <th>处理结果</th>
+                        <th>类型</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <!-- 历史记录将在这里动态生成 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <a href="index.html" class="back-to-home">← 返回首页</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const encodeTab = document.getElementById('encodeTab');
+            const decodeTab = document.getElementById('decodeTab');
+            const inputText = document.getElementById('inputText');
+            const outputText = document.getElementById('outputText');
+            const processBtn = document.getElementById('processBtn');
+            const copyInputBtn = document.getElementById('copyInputBtn');
+            const clearInputBtn = document.getElementById('clearInputBtn');
+            const copyOutputBtn = document.getElementById('copyOutputBtn');
+            const clearOutputBtn = document.getElementById('clearOutputBtn');
+            const swapBtn = document.getElementById('swapBtn');
+            const historyBody = document.getElementById('historyBody');
+            const statusDiv = document.getElementById('status');
+            
+            // 当前模式 (encode 或 decode)
+            let currentMode = 'encode';
+            
+            // 加载历史记录
+            loadHistory();
+            
+            // 标签切换事件
+            encodeTab.addEventListener('click', function() {
+                setMode('encode');
+            });
+            
+            decodeTab.addEventListener('click', function() {
+                setMode('decode');
+            });
+            
+            // 处理按钮点击事件
+            processBtn.addEventListener('click', processText);
+            
+            // 输入框回车事件
+            inputText.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    processText();
+                }
+            });
+            
+            // 复制输入按钮点击事件
+            copyInputBtn.addEventListener('click', function() {
+                copyToClipboard(inputText.value);
+            });
+            
+            // 清空输入按钮点击事件
+            clearInputBtn.addEventListener('click', function() {
+                inputText.value = '';
+                inputText.focus();
+            });
+            
+            // 复制输出按钮点击事件
+            copyOutputBtn.addEventListener('click', function() {
+                copyToClipboard(outputText.value);
+            });
+            
+            // 清空输出按钮点击事件
+            clearOutputBtn.addEventListener('click', function() {
+                outputText.value = '';
+            });
+            
+            // 交换输入/输出按钮点击事件
+            swapBtn.addEventListener('click', function() {
+                const temp = inputText.value;
+                inputText.value = outputText.value;
+                outputText.value = temp;
+            });
+            
+            // 设置当前模式
+            function setMode(mode) {
+                currentMode = mode;
+                
+                if (mode === 'encode') {
+                    encodeTab.classList.add('active');
+                    decodeTab.classList.remove('active');
+                    processBtn.textContent = '编码';
+                } else {
+                    encodeTab.classList.remove('active');
+                    decodeTab.classList.add('active');
+                    processBtn.textContent = '解码';
+                }
+                
+                // 如果输入和输出都有内容，自动处理
+                if (inputText.value.trim() !== '') {
+                    processText();
+                }
+            }
+            
+            // 处理文本
+            function processText() {
+                const input = inputText.value.trim();
+                
+                if (!input) {
+                    showStatus('请输入需要处理的文本', 'error');
+                    return;
+                }
+                
+                let result = '';
+                
+                try {
+                    if (currentMode === 'encode') {
+                        result = encodeURIComponent(input);
+                    } else {
+                        result = decodeURIComponent(input);
+                    }
+                    
+                    outputText.value = result;
+                    
+                    // 保存到历史记录
+                    saveToHistory(input, result, currentMode);
+                    
+                    showStatus(`${currentMode === 'encode' ? '编码' : '解码'}成功!`, 'success');
+                } catch (error) {
+                    console.error('Error:', error);
+                    showStatus(`${currentMode === 'encode' ? '编码' : '解码'}失败: ${error.message}`, 'error');
+                }
+            }
+            
+            // 复制到剪贴板
+            function copyToClipboard(text) {
+                if (!text) {
+                    showStatus('没有内容可复制', 'error');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showStatus('已复制到剪贴板', 'success');
+                    })
+                    .catch(err => {
+                        showStatus('复制失败: ' + err, 'error');
+                    });
+            }
+            
+            // 保存到历史记录
+            function saveToHistory(input, output, mode) {
+                let history = [];
+                try {
+                    const storedHistory = localStorage.getItem('urlToolHistory');
+                    history = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error('解析历史记录失败:', e);
+                    history = [];
+                }
+                
+                // 添加新记录到历史
+                history.unshift({
+                    input: input,
+                    output: output,
+                    mode: mode,
+                    timestamp: new Date().getTime()
+                });
+                
+                // 限制历史记录数量
+                if (history.length > 50) {
+                    history = history.slice(0, 50);
+                }
+                
+                localStorage.setItem('urlToolHistory', JSON.stringify(history));
+                loadHistory();
+            }
+            
+            // 加载历史记录
+            function loadHistory() {
+                let history = [];
+                try {
+                    const storedHistory = localStorage.getItem('urlToolHistory');
+                    history = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error('解析历史记录失败:', e);
+                    history = [];
+                }
+                
+                historyBody.innerHTML = '';
+                
+                if (history.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">暂无历史记录</td></tr>';
+                    return;
+                }
+                
+                history.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const inputCell = document.createElement('td');
+                    inputCell.textContent = truncateText(item.input, 30);
+                    inputCell.title = item.input;
+                    
+                    const outputCell = document.createElement('td');
+                    outputCell.textContent = truncateText(item.output, 30);
+                    outputCell.title = item.output;
+                    
+                    const typeCell = document.createElement('td');
+                    typeCell.textContent = item.mode === 'encode' ? '编码' : '解码';
+                    
+                    const actionCell = document.createElement('td');
+                    
+                    const useBtn = document.createElement('button');
+                    useBtn.textContent = '使用';
+                    useBtn.className = 'action-btn copy-btn';
+                    useBtn.onclick = () => {
+                        inputText.value = item.input;
+                        outputText.value = item.output;
+                        setMode(item.mode);
+                    };
+                    
+                    const copyInputBtn = document.createElement('button');
+                    copyInputBtn.textContent = '复制输入';
+                    copyInputBtn.className = 'action-btn copy-btn';
+                    copyInputBtn.onclick = () => {
+                        copyToClipboard(item.input);
+                    };
+                    
+                    const copyOutputBtn = document.createElement('button');
+                    copyOutputBtn.textContent = '复制结果';
+                    copyOutputBtn.className = 'action-btn copy-btn';
+                    copyOutputBtn.onclick = () => {
+                        copyToClipboard(item.output);
+                    };
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '删除';
+                    deleteBtn.className = 'action-btn delete-btn';
+                    deleteBtn.onclick = () => deleteHistoryItem(index);
+                    
+                    actionCell.appendChild(useBtn);
+                    actionCell.appendChild(copyInputBtn);
+                    actionCell.appendChild(copyOutputBtn);
+                    actionCell.appendChild(deleteBtn);
+                    
+                    row.appendChild(inputCell);
+                    row.appendChild(outputCell);
+                    row.appendChild(typeCell);
+                    row.appendChild(actionCell);
+                    
+                    historyBody.appendChild(row);
+                });
+            }
+            
+            // 删除历史记录项
+            function deleteHistoryItem(index) {
+                let history = [];
+                try {
+                    const storedHistory = localStorage.getItem('urlToolHistory');
+                    history = storedHistory ? JSON.parse(storedHistory) : [];
+                } catch (e) {
+                    console.error('解析历史记录失败:', e);
+                    history = [];
+                }
+                
+                history.splice(index, 1);
+                localStorage.setItem('urlToolHistory', JSON.stringify(history));
+                loadHistory();
+                showStatus('已删除历史记录', 'success');
+            }
+            
+            // 显示状态消息
+            function showStatus(message, type) {
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                statusDiv.style.display = 'block';
+                
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 截断文本
+            function truncateText(text, maxLength) {
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            }
+            
+            // 添加科技感动画效果
+            function addTechEffect() {
+                document.addEventListener('mousemove', function(e) {
+                    const x = e.clientX / window.innerWidth;
+                    const y = e.clientY / window.innerHeight;
+                    
+                    document.body.style.backgroundPosition = `${x * 100}% ${y * 100}%`;
+                });
+                
+                // 添加脉冲效果到按钮
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        this.classList.add('pulse');
+                        setTimeout(() => {
+                            this.classList.remove('pulse');
+                        }, 2000);
+                    });
+                });
+            }
+            
+            // 初始化科技感效果
+            addTechEffect();
+        });
+    </script>
+</body>
+</html>
