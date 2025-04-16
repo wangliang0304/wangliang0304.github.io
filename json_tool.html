@@ -34,7 +34,7 @@
             background-color: var(--light-bg);
             color: var(--text-color);
             line-height: 1.6;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(0, 180, 216, 0.05) 0%, transparent 20%),
                 radial-gradient(circle at 90% 80%, rgba(0, 180, 216, 0.05) 0%, transparent 20%);
             min-height: 100vh;
@@ -200,8 +200,8 @@
         }
 
         #json-result {
-            padding: 1rem; 
-            margin: 0; 
+            padding: 1rem;
+            margin: 0;
             white-space: pre-wrap;
             height: 100%;
             overflow: auto;
@@ -268,9 +268,9 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(
-                90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.2), 
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
                 transparent
             );
             transition: left 0.7s;
@@ -494,7 +494,7 @@
         .pulse {
             animation: pulse 1.5s infinite;
         }
-        
+
         /* 添加背景网格装饰 */
         .grid-bg {
             position: fixed;
@@ -502,7 +502,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(rgba(255, 255, 255, 0.8) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.8) 1px, transparent 1px);
             background-size: 20px 20px;
@@ -675,20 +675,6 @@
                         <div class="json-input-container">
                             <label for="json-input" class="textarea-label">输入JSON数据：</label>
                             <textarea id="json-input" placeholder='{"example": "在这里粘贴您的JSON数据", "tips": "支持复杂的JSON结构"}'></textarea>
-                            
-                            <div id="error-container" class="error-container">
-                                <span class="close-error" id="close-error">&times;</span>
-                                <div class="error-title">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                    </svg>
-                                    JSON格式错误
-                                </div>
-                                <div id="error-message" class="error-message"></div>
-                                <div id="error-hint" class="error-hint"></div>
-                            </div>
                         </div>
 
                         <div class="format-options">
@@ -706,13 +692,13 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="right-panel">
                         <div class="json-output-container">
                             <label for="json-output" class="textarea-label">格式化结果：</label>
                             <div id="json-output" class="json-output">
                                 <div id="json-error-container" class="json-error-container">
-                                    <span class="close-error" id="close-error">&times;</span>
+                                    <span class="close-error" id="close-json-error">&times;</span>
                                     <div class="error-title">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <circle cx="12" cy="12" r="10"></circle>
@@ -770,10 +756,10 @@
             // 显示通知
             function showNotification(message, isError = false) {
                 notification.textContent = message;
-                notification.className = isError 
-                    ? 'notification error-notification show' 
+                notification.className = isError
+                    ? 'notification error-notification show'
                     : 'notification show';
-                
+
                 setTimeout(() => {
                     notification.className = 'notification';
                 }, 3000);
@@ -786,29 +772,29 @@
                     showError('请输入JSON数据');
                     return;
                 }
-                
+
                 try {
                     const parsedJson = JSON.parse(input);
                     const spaces = parseInt(indentSize.value) || 2;
                     const formattedJson = JSON.stringify(parsedJson, null, spaces);
-                    
+
                     // Clear any previous errors
                     hideError();
-                    
+
                     // Format and display the JSON with collapsible functionality
                     const htmlOutput = formatJsonWithCollapsible(parsedJson, spaces);
                     jsonResult.innerHTML = htmlOutput;
-                    
+
                     // Add event listeners for collapsible elements
                     addCollapseListeners();
-                    
+
                     showNotification('✓ JSON格式化成功!');
                 } catch (e) {
                     showError(e.message);
                     showNotification(`JSON无效: ${e.message}`, true);
                 }
             }
-            
+
             // 压缩JSON
             function compactJSON() {
                 const input = jsonInput.value.trim();
@@ -816,30 +802,30 @@
                     showError('请输入JSON数据');
                     return;
                 }
-                
+
                 try {
                     const parsedJson = JSON.parse(input);
                     const compactJson = JSON.stringify(parsedJson);
-                    
+
                     // 显示压缩后的内容，使用新增的压缩专用样式
                     jsonResult.innerHTML = `<span class="compressed-json json-string">${escapeHtml(compactJson)}</span>`;
-                    
+
                     // 清除错误
                     hideError();
-                    
+
                     showNotification('✓ JSON压缩成功!');
                 } catch (e) {
                     showError(e.message);
                     showNotification(`JSON无效: ${e.message}`, true);
                 }
             }
-            
+
             // 显示错误信息
             function showError(message) {
                 jsonOutput.classList.add('error-mode');
                 errorContainer.style.display = 'block';
                 errorMessage.textContent = message;
-                
+
                 // 根据常见错误类型提供提示
                 if (message.includes('Unexpected token')) {
                     errorHint.textContent = '提示: 检查JSON格式是否正确，可能缺少引号、逗号或括号。';
@@ -856,11 +842,11 @@
                 } else {
                     errorHint.textContent = '提示: 请检查JSON格式是否符合规范。';
                 }
-                
+
                 // 清空结果区域
                 jsonResult.innerHTML = '';
             }
-            
+
             // 隐藏错误信息
             function hideError() {
                 jsonOutput.classList.remove('error-mode');
@@ -868,7 +854,7 @@
                 errorMessage.textContent = '';
                 errorHint.textContent = '';
             }
-            
+
             // 清空所有内容
             function clearAll() {
                 jsonInput.value = '';
@@ -876,17 +862,17 @@
                 hideError();
                 showNotification('内容已清空');
             }
-            
+
             // 格式化JSON为可折叠的HTML结构
             function formatJsonWithCollapsible(json, spaces) {
                 return formatJsonValue(json, 0, spaces || 2);
             }
-            
+
             // 递归格式化JSON值
             function formatJsonValue(value, level, spaces) {
                 const indent = ' '.repeat(spaces).repeat(level);
                 const indentNext = ' '.repeat(spaces).repeat(level + 1);
-                
+
                 if (value === null) {
                     return '<span class="json-null">null</span>';
                 } else if (typeof value === 'boolean') {
@@ -900,9 +886,9 @@
                     if (value.length === 0) {
                         return '<span class="json-array">[]</span>';
                     }
-                    
+
                     let result = '<span class="collapsible">[</span><span class="collapsible-content">\n';
-                    
+
                     for (let i = 0; i < value.length; i++) {
                         result += `${indentNext}${formatJsonValue(value[i], level + 1, spaces)}`;
                         if (i < value.length - 1) {
@@ -910,7 +896,7 @@
                         }
                         result += '\n';
                     }
-                    
+
                     result += `${indent}]</span>`;
                     return result;
                 } else if (typeof value === 'object') {
@@ -918,9 +904,9 @@
                     if (keys.length === 0) {
                         return '<span class="json-object">{}</span>';
                     }
-                    
+
                     let result = '<span class="collapsible">{</span><span class="collapsible-content">\n';
-                    
+
                     for (let i = 0; i < keys.length; i++) {
                         const key = keys[i];
                         result += `${indentNext}<span class="json-key">"${escapeHtml(key)}"</span>: ${formatJsonValue(value[key], level + 1, spaces)}`;
@@ -929,14 +915,14 @@
                         }
                         result += '\n';
                     }
-                    
+
                     result += `${indent}}</span>`;
                     return result;
                 }
-                
+
                 return '';
             }
-            
+
             // HTML转义
             function escapeHtml(str) {
                 return String(str)
@@ -946,19 +932,19 @@
                     .replace(/"/g, '&quot;')
                     .replace(/'/g, '&#039;');
             }
-            
+
             // 添加折叠功能监听器
             function addCollapseListeners() {
                 const collapsibles = document.querySelectorAll('.collapsible');
-                
+
                 collapsibles.forEach(collapsible => {
                     if (!collapsible.hasAttribute('data-listener-added')) {
                         collapsible.setAttribute('data-listener-added', 'true');
-                        
+
                         collapsible.addEventListener('click', function(e) {
                             e.stopPropagation();
                             this.classList.toggle('collapsed');
-                            
+
                             // 找到对应的内容元素并切换其可见性
                             const content = this.nextElementSibling;
                             if (content && content.classList.contains('collapsible-content')) {
@@ -973,18 +959,18 @@
             function validateJSON() {
                 try {
                     const jsonString = jsonInput.value.trim();
-                    
+
                     if (!jsonString) {
                         showNotification('请输入JSON数据进行验证', true);
                         return;
                     }
-                    
+
                     // 隐藏错误提示
                     hideError();
-                    
+
                     JSON.parse(jsonString);
                     showNotification('✓ JSON格式有效!');
-                    
+
                 } catch (error) {
                     showError(error.message);
                     showNotification(`JSON无效: ${error.message}`, true);
@@ -999,21 +985,21 @@
                         showNotification('没有可复制的内容', true);
                         return;
                     }
-                    
+
                     // 获取要复制的文本
                     let textToCopy;
-                    
+
                     // 确保输入的JSON是有效的
                     const inputJson = jsonInput.value.trim();
                     if (!inputJson) {
                         showNotification('没有原始JSON数据可复制', true);
                         return;
                     }
-                    
+
                     try {
                         // 解析JSON以确保它是有效的
                         const parsedJson = JSON.parse(inputJson);
-                        
+
                         // 根据当前选择的格式化方式决定如何复制
                         if (compactOption.checked) {
                             // 压缩模式 - 直接复制压缩后的JSON字符串
@@ -1023,7 +1009,7 @@
                             const spaces = parseInt(indentSize.value) || 2;
                             textToCopy = JSON.stringify(parsedJson, null, spaces);
                         }
-                        
+
                         // 执行复制操作
                         navigator.clipboard.writeText(textToCopy)
                             .then(() => {
@@ -1033,11 +1019,11 @@
                                 console.error('复制失败:', err);
                                 showNotification('复制失败，请手动复制', true);
                             });
-                            
+
                     } catch (parseError) {
                         // JSON解析失败，可能是无效JSON，尝试直接复制显示的内容
                         console.error('解析JSON失败:', parseError);
-                        
+
                         // 移除HTML标签，只复制文本内容
                         const plainText = jsonResult.textContent;
                         navigator.clipboard.writeText(plainText)
@@ -1065,7 +1051,7 @@
             prettyOption.addEventListener('change', function() {
                 indentSize.disabled = false;
             });
-            
+
             compactOption.addEventListener('change', function() {
                 indentSize.disabled = true;
             });
@@ -1105,7 +1091,7 @@
                         "lastUpdated": "2025-01-01"
                     }
                 };
-                
+
                 jsonInput.value = JSON.stringify(exampleJson);
                 formatJSON();
             };
@@ -1141,7 +1127,7 @@
                     e.preventDefault();
                 }
             });
-            
+
             // 添加双击输入区域加载示例
             jsonInput.addEventListener('dblclick', function() {
                 if (!this.value) {
@@ -1156,13 +1142,13 @@
                     formatJSON();
                     e.preventDefault();
                 }
-                
+
                 // Ctrl+Shift+Enter 触发压缩
                 if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
                     compactJSON();
                     e.preventDefault();
                 }
-                
+
                 // Esc 清空内容
                 if (e.key === 'Escape') {
                     clearAll();
@@ -1189,11 +1175,11 @@
                 showNotification('欢迎使用JSON格式化工具! 双击输入区域可加载示例数据');
             }, 500);
 
-            // 错误关闭按钮
-            document.getElementById('close-error').addEventListener('click', function() {
+            // JSON错误关闭按钮
+            document.getElementById('close-json-error').addEventListener('click', function() {
                 hideError();
             });
-            
+
             // 初始化检查如果URL包含JSON参数
             const urlParams = new URLSearchParams(window.location.search);
             const jsonParam = urlParams.get('json');
