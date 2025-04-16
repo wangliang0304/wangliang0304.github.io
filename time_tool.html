@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间戳转换工具 - Joker的工具箱</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #00bcd4; /* Cyan */
+            --primary-dark: #0097a7;
+            --text-color: #e0e0e0; /* Light gray text */
+            --bg-color: #1a1a2e; /* Dark blue-purple */
+            --input-bg: #2a2a4e; /* Slightly lighter dark blue */
+            --card-bg: #24243e; /* Card background */
+            --border-color: #4f4f7a; /* Muted purple border */
+            --shadow: 0 4px 15px rgba(0, 188, 212, 0.2); /* Cyan glow */
+            --border-radius: 8px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            text-shadow: 0 0 5px rgba(0, 188, 212, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        }
+
+        .btn {
+            flex-grow: 1; /* Make buttons share space */
+            padding: 0.8rem 1rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            min-width: 120px; /* Minimum width for buttons */
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
+            box-shadow: 0 4px 10px rgba(0, 188, 212, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            background-color: var(--input-bg);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            word-wrap: break-word;
+            min-height: 50px; /* Ensure it has some height */
+        }
+
+        .result pre {
+            margin: 0;
+            white-space: pre-wrap; /* Allow wrapping */
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            color: #90ee90; /* Light green for result */
+        }
+
+        .error {
+            color: #ff6b6b; /* Light red for errors */
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column; /* Stack buttons vertically */
+            }
+
+            .btn {
+                width: 100%; /* Make buttons full width */
+            }
+        }
+
+        @media (max-width: 400px) {
+             .container {
+                padding: 1rem;
+            }
+             h1 {
+                font-size: 1.3rem;
+             }
+             input[type="text"],
+             input[type="number"],
+             input[type="datetime-local"],
+             .btn {
+                font-size: 0.9rem;
+                padding: 0.7rem;
+             }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>时间戳转换工具</h1>
+
+        <div class="form-group">
+            <label for="timestampInput">时间戳 (秒 s 或 毫秒 ms)</label>
+            <input type="number" id="timestampInput" placeholder="输入秒或毫秒时间戳">
+        </div>
+
+        <div class="button-group">
+            <button class="btn" onclick="convertToDate('s')">转为日期 (秒)</button>
+            <button class="btn" onclick="convertToDate('ms')">转为日期 (毫秒)</button>
+        </div>
+
+        <div class="form-group" style="margin-top: 2rem;">
+            <label for="dateInput">日期和时间</label>
+            <input type="datetime-local" id="dateInput" step="1"> <!-- step="1" allows seconds -->
+        </div>
+
+        <div class="button-group">
+            <button class="btn" onclick="convertToTimestamp()">转为时间戳</button>
+            <button class="btn" onclick="getCurrentTime()">获取当前时间</button>
+        </div>
+
+        <div class="result" id="resultArea">
+            <pre>结果将显示在这里...</pre>
+        </div>
+    </div>
+
+    <script>
+        const timestampInput = document.getElementById('timestampInput');
+        const dateInput = document.getElementById('dateInput');
+        const resultArea = document.getElementById('resultArea');
+
+        function displayResult(content) {
+            resultArea.innerHTML = `<pre>${content}</pre>`;
+            resultArea.classList.remove('error');
+        }
+
+        function displayError(message) {
+            resultArea.innerHTML = `<pre class="error">${message}</pre>`;
+            resultArea.classList.add('error');
+        }
+
+        function isValidTimestamp(ts) {
+             // Basic check: is it a number and non-negative?
+             // Allows for potentially very large timestamps but catches obvious non-numeric input.
+             const num = Number(ts);
+             return !isNaN(num) && num >= 0 && ts.trim() !== '';
+        }
+
+        function convertToDate(unit) {
+            const ts = timestampInput.value;
+            if (!isValidTimestamp(ts)) {
+                displayError("请输入有效的非负时间戳数字。");
+                return;
+            }
+
+            const timestamp = parseInt(ts, 10);
+            let date;
+
+            try {
+                if (unit === 's') {
+                    // Check if the timestamp looks like milliseconds (e.g., > 3 billion seconds, approx year 2065)
+                    // This is a heuristic and might misinterpret very large second timestamps or small ms timestamps.
+                    if (timestamp > 3000000000 && timestamp.toString().length > 10) {
+                         displayError("这个数字看起来像毫秒时间戳，请尝试使用 '转为日期 (毫秒)' 按钮。");
+                         return;
+                    }
+                    date = new Date(timestamp * 1000);
+                } else if (unit === 'ms') {
+                     // Check if the timestamp looks like seconds
+                     if (timestamp < 3000000000 && timestamp.toString().length <= 10) {
+                         displayError("这个数字看起来像秒时间戳，请尝试使用 '转为日期 (秒)' 按钮。");
+                         return;
+                     }
+                    date = new Date(timestamp);
+                } else {
+                    displayError("无效的单位。");
+                    return;
+                }
+
+                if (isNaN(date.getTime())) {
+                   throw new Error("无效日期");
+                }
+
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const seconds = date.getSeconds().toString().padStart(2, '0');
+                const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+
+                const localTimeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+                const utcTimeString = date.toISOString().replace('T', ' ').replace('Z', ' UTC');
+
+                displayResult(`本地时间: ${localTimeString}
+UTC 时间: ${utcTimeString}`);
+
+            } catch (error) {
+                displayError("转换失败：无效的时间戳或计算错误。");
+                console.error("Conversion error:", error);
+            }
+        }
+
+        function convertToTimestamp() {
+            const dateString = dateInput.value;
+            if (!dateString) {
+                displayError("请选择一个日期和时间。");
+                return;
+            }
+
+            try {
+                // The input type="datetime-local" provides value in 'YYYY-MM-DDTHH:mm:ss' format
+                // Adjusting for local timezone offset is tricky. Date() constructor usually handles this.
+                const date = new Date(dateString);
+
+                 if (isNaN(date.getTime())) {
+                   throw new Error("无效日期");
+                 }
+
+                const timestampSeconds = Math.floor(date.getTime() / 1000);
+                const timestampMilliseconds = date.getTime();
+
+                displayResult(`时间戳 (秒): ${timestampSeconds}
+时间戳 (毫秒): ${timestampMilliseconds}`);
+
+            } catch (error) {
+                displayError("转换失败：无效的日期格式或计算错误。");
+                console.error("Conversion error:", error);
+            }
+        }
+
+         function getCurrentTime() {
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                const day = now.getDate().toString().padStart(2, '0');
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+
+                // Format for datetime-local input: YYYY-MM-DDTHH:mm:ss
+                const localDateTimeString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+                dateInput.value = localDateTimeString;
+
+                // Also display current timestamp
+                const timestampSeconds = Math.floor(now.getTime() / 1000);
+                const timestampMilliseconds = now.getTime();
+                displayResult(`当前时间戳 (秒): ${timestampSeconds}
+当前时间戳 (毫秒): ${timestampMilliseconds}`);
+
+            } catch (error) {
+                 displayError("获取当前时间失败。");
+                 console.error("Get current time error:", error);
+            }
+        }
+
+        // Set initial state for date input if needed, or leave empty
+        // getCurrentTime(); // Optional: uncomment to load current time on page load
+    </script>
+</body>
+</html> 
