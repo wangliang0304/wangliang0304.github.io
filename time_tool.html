@@ -141,6 +141,22 @@
             font-weight: bold;
         }
 
+        /* Style for Back to Home link */
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem; /* Add some space before the result area */
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+            color: var(--primary-dark);
+        }
+
         /* Responsive Design */
         @media (max-width: 600px) {
             .container {
@@ -201,6 +217,9 @@
             <button class="btn" onclick="convertToTimestamp()">转为时间戳</button>
             <button class="btn" onclick="getCurrentTime()">获取当前时间</button>
         </div>
+
+        <!-- Back to Home Link -->
+        <a href="index.html" class="back-link">返回主页</a>
 
         <div class="result" id="resultArea">
             <pre>结果将显示在这里...</pre>

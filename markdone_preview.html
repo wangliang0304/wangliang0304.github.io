@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown 实时预览 - Joker的工具箱</title>
+    <!-- 引入 Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #00bcd4; /* Teal */
+            --primary-dark: #0097a7;
+            --text-color: #e0e0e0;
+            --bg-color: #212121; /* Dark background */
+            --editor-bg: #303030;
+            --preview-bg: #282828;
+            --border-color: #424242;
+            --header-bg: #2c3e50;
+            --border-radius: 6px;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: var(--header-bg);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            margin-left: 0.5rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: #616161; /* Grey */
+        }
+        .btn-secondary:hover {
+            background-color: #424242;
+        }
+
+
+        .container {
+            display: flex;
+            flex-grow: 1;
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .editor-pane, .preview-pane {
+            flex: 1;
+            background-color: var(--editor-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Needed for textarea/preview scroll */
+            height: calc(100vh - 80px); /* Adjust based on header height */
+        }
+
+        .pane-header {
+            padding: 0.5rem 1rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: bold;
+            color: #bdbdbd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+        #markdown-input {
+            flex-grow: 1;
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            background-color: transparent;
+            color: var(--text-color);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+
+        #preview-output {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: var(--preview-bg);
+            color: var(--text-color); /* Ensure text color contrasts with preview bg */
+             /* Basic Markdown styling */
+            line-height: 1.7;
+        }
+
+        /* Markdown elements styling for better readability */
+        #preview-output h1, #preview-output h2, #preview-output h3, #preview-output h4, #preview-output h5, #preview-output h6 {
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.3em;
+            margin-top: 1.5em;
+            margin-bottom: 1em;
+        }
+        #preview-output h1 { font-size: 2em; }
+        #preview-output h2 { font-size: 1.75em; }
+        #preview-output h3 { font-size: 1.5em; }
+
+        #preview-output p {
+            margin-bottom: 1em;
+        }
+
+        #preview-output a {
+            color: #64b5f6; /* Light Blue for links */
+            text-decoration: none;
+        }
+        #preview-output a:hover {
+            text-decoration: underline;
+        }
+
+        #preview-output code {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
+        #preview-output pre {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 1em;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+        }
+         #preview-output pre code {
+             background-color: transparent;
+             padding: 0;
+         }
+
+        #preview-output blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1em;
+            margin-left: 0;
+            color: #bdbdbd;
+            font-style: italic;
+        }
+
+        #preview-output ul, #preview-output ol {
+             padding-left: 1.5em;
+         }
+        #preview-output li {
+             margin-bottom: 0.5em;
+         }
+
+         #preview-output table {
+             width: 100%;
+             border-collapse: collapse;
+             margin-bottom: 1em;
+         }
+         #preview-output th, #preview-output td {
+             border: 1px solid var(--border-color);
+             padding: 0.5em 0.8em;
+         }
+         #preview-output th {
+             background-color: rgba(255, 255, 255, 0.08);
+             font-weight: bold;
+         }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto; /* Let container grow */
+                padding: 0.5rem;
+            }
+            .editor-pane, .preview-pane {
+                 height: 50vh; /* Split height */
+                 margin-bottom: 1rem;
+            }
+             .editor-pane:last-child, .preview-pane:last-child {
+                 margin-bottom: 0;
+             }
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Markdown 实时预览</h1>
+        <div>
+             <button id="copy-btn" class="btn">复制HTML</button>
+             <a href="index.html" class="btn btn-secondary">返回主页</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="editor-pane">
+             <div class="pane-header">Markdown 输入</div>
+            <textarea id="markdown-input" placeholder="在此输入 Markdown..."></textarea>
+        </div>
+        <div class="preview-pane">
+             <div class="pane-header">实时预览</div>
+            <div id="preview-output"></div>
+        </div>
+    </div>
+
+    <script>
+        const markdownInput = document.getElementById('markdown-input');
+        const previewOutput = document.getElementById('preview-output');
+        const copyBtn = document.getElementById('copy-btn');
+
+        // Initialize marked - you can configure options here if needed
+        // marked.setOptions({ gfm: true, breaks: true }); // Example options
+
+        function renderPreview() {
+            const markdownText = markdownInput.value;
+            // Use marked to convert markdown to HTML
+            const htmlOutput = marked.parse(markdownText);
+            previewOutput.innerHTML = htmlOutput;
+        }
+
+        // Initial render in case there's saved content (e.g., browser back button)
+        renderPreview();
+
+        // Update preview in real-time as user types
+        markdownInput.addEventListener('input', renderPreview);
+
+        // Copy button functionality
+        copyBtn.addEventListener('click', () => {
+            const htmlToCopy = previewOutput.innerHTML;
+            if (!htmlToCopy) {
+                alert('没有预览内容可以复制！');
+                return;
+            }
+            navigator.clipboard.writeText(htmlToCopy)
+                .then(() => {
+                    copyBtn.textContent = '已复制!';
+                    copyBtn.style.backgroundColor = '#27ae60'; // Green color for success
+                    setTimeout(() => {
+                        copyBtn.textContent = '复制HTML';
+                        copyBtn.style.backgroundColor = 'var(--primary-color)'; // Revert color
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    alert('复制HTML失败，请手动复制。');
+                });
+        });
+
+        // Add a sample Markdown text on load
+        markdownInput.value = `# 欢迎使用 Markdown 预览器
+
+这是一个实时的 **Markdown** 预览工具。
+
+## 特性
+
+*   实时转换
+*   支持 *GitHub Flavored Markdown*
+*   代码高亮 (需要额外库如 highlight.js)
+*   响应式设计
+
+\`\`\`javascript
+function greet(name) {
+  console.log('Hello, ' + name + '!');
+}
+greet('Joker');
+\`\`\`
+
+> 输入你的 Markdown 文本到左侧编辑区，右侧将实时显示 HTML 预览。
+
+[返回主页](index.html)
+`;
+        renderPreview(); // Render the sample text
+
+
+    </script>
+</body>
+</html>
