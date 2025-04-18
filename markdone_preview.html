@@ -202,6 +202,16 @@
              font-weight: bold;
          }
 
+         /* Ensure images are displayed correctly */
+         #preview-output img {
+             max-width: 100%;
+             height: auto;
+             display: block; /* Prevent extra space below */
+             margin-top: 0.5em;
+             margin-bottom: 0.5em;
+             border-radius: 4px; /* Optional: adds rounded corners */
+         }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -312,6 +322,18 @@ greet('Joker');
 > 输入你的 Markdown 文本到左侧编辑区，右侧将实时显示 HTML 预览。
 
 [返回主页](index.html)
+
+---
+
+## 图片示例
+
+使用标准 Markdown 语法插入图片: \`![替代文本](图片URL)\`
+
+![这是一个示例图片](https://via.placeholder.com/300x150.png?text=示例图片)
+
+请将上面的 URL 替换为您自己的图片链接。
+
+![Alt Text](https://your-image-url.com/image.jpg)
 `;
         renderPreview(); // Render the sample text
 
