@@ -215,7 +215,6 @@
         const generateBtn = document.getElementById('generate-btn');
         const textInput = document.getElementById('text-input');
         const qrContainer = document.getElementById('qrcode-container');
-        let qrcode = null; // Variable to hold the QRCode instance
 
         generateBtn.addEventListener('click', () => {
             const text = textInput.value.trim();
@@ -223,6 +222,12 @@
                 alert('请输入要生成二维码的文本或URL！');
                 textInput.focus();
                 return;
+            }
+
+            let textToEncode = text;
+            if (text.startsWith('@')) {
+                console.log("Input starts with '@', removing it for QR code generation.");
+                textToEncode = text.substring(1); // Remove the first character
             }
 
             // Clear previous QR code
@@ -234,28 +239,34 @@
 
             // Create new QR code instance or update existing one
             try {
-                if (!qrcode) {
-                     qrcode = new QRCode(qrContainer, {
-                        text: text,
-                        width: 200, // Adjust size as needed
-                        height: 200,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H // High correction level
-                    });
-                } else {
-                    qrcode.clear(); // Clear the existing QR code visuals
-                    qrcode.makeCode(text); // Generate new QR code with the same instance
-                }
-                
-                // Add download button after a short delay to ensure canvas is ready
-                setTimeout(addDownloadButton, 100); // Add a 100ms delay
+                 console.log("Attempting to generate QR code for:", textToEncode); // Add logging
+                 // --- Always create a new instance --- 
+                 new QRCode(qrContainer, {
+                     text: textToEncode,
+                     width: 200, // Adjust size as needed
+                     height: 200,
+                     colorDark : "#000000",
+                     colorLight : "#ffffff",
+                     correctLevel : QRCode.CorrectLevel.H // High correction level
+                 });
+                 // --- End change ---
+                 console.log("makeCode call completed for:", textToEncode); // Log success
+                 // Check if canvas exists immediately
+                 const canvasCheck = qrContainer.querySelector('canvas');
+                 if (canvasCheck) {
+                     console.log("Canvas element found immediately after makeCode. Dimensions:", canvasCheck.width, "x", canvasCheck.height);
+                 } else {
+                     console.error("Canvas element NOT found immediately after makeCode!");
+                 }
+
+                 // Add download button after a short delay to ensure canvas is ready
+                 setTimeout(addDownloadButton, 100); // Add a 100ms delay
 
             } catch (error) {
-                console.error("QR Code generation failed:", error);
-                alert("生成二维码时出错，请检查输入或稍后再试。");
+                console.error(`QR Code generation failed for text "${textToEncode}":`, error);
+                alert(`生成二维码时出错: ${error.message || '请检查输入或稍后再试。'}`);
                 // Optionally display error in the container
-                qrContainer.innerHTML = '<p style="color: red; text-align:center;">生成失败</p>';
+                qrContainer.innerHTML = `<p style="color: red; text-align:center;">生成失败: ${error.message || '未知错误'}<br>输入: ${text}</p>`;
             }
         });
 
@@ -290,8 +301,16 @@
                         return;
                     }
                     const dataUrl = currentCanvas.toDataURL('image/png');
-                    console.log("Generated Data URL (first 100 chars):", dataUrl.substring(0, 100)); // Log for debugging
-                    if (!dataUrl || dataUrl === 'data:,') {
+                     console.log("Generated Data URL (first 100 chars):", dataUrl.substring(0, 100)); // Log for debugging
+                    // --- Add check for canvas dimensions ---
+                    if (currentCanvas.width === 0 || currentCanvas.height === 0) {
+                        console.error("Canvas dimensions are zero.");
+                        alert('二维码图像无效 (尺寸为零)。');
+                        return;
+                    }
+                    // --- End check ---
+                    if (!dataUrl || dataUrl === 'data:,' || dataUrl.length < 100) { // Check for minimal valid data URL
+                        console.error("Generated Data URL is invalid or empty:", dataUrl);
                         alert('无法获取二维码数据。');
                         return;
                     }
@@ -306,7 +325,7 @@
 
                 } catch (error) {
                     console.error("Download failed:", error);
-                    alert("下载二维码时出错。");
+                    alert(`下载二维码时出错: ${error.message || '未知错误'}`);
                 } finally {
                      // Ensure the temporary link is removed
                     if (tempLink.parentNode === document.body) {
