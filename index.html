@@ -160,7 +160,7 @@
         .contact-info p {
             font-weight: bold;
             font-size: 1.1rem;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             color: #ffdd57;
         }
 
@@ -168,57 +168,41 @@
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 30px;
         }
 
         .contact-item {
             flex: 1;
-            min-width: 220px;
+            min-width: 150px;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .qr-code-img {
+            width: 120px;
+            height: 120px;
+            margin-top: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background-color: white;
+            padding: 5px;
+        }
+
+        .contact-id-text {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .wechat-box, .public-account-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            display: none;
         }
 
-        .wechat-box {
-            background-color: #1aaa39;
-        }
-
-        .public-account-box {
-            background-color: #09bb07;
-        }
-
-        .wechat-box:hover, .public-account-box:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .wechat-icon, .public-account-icon {
-            margin-right: 10px;
-            font-size: 1.2rem;
-        }
-
-        .wechat-id, .public-account-id {
-            font-weight: bold;
-            color: white;
-            letter-spacing: 1px;
-        }
-
-        /* 工具卡片内容样式 */
         .tool-content p {
             margin: 0.5rem 0;
             line-height: 1.5;
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.5rem;
@@ -252,18 +236,23 @@
                 padding: 1rem;
                 max-width: 100%;
             }
-            
+
             .contact-container {
                 flex-direction: column;
-                gap: 15px;
+                gap: 20px;
             }
-            
+
             .contact-item {
                 min-width: 100%;
+                max-width: 250px;
+                margin: 0 auto;
             }
+             .qr-code-img {
+                 width: 100px;
+                 height: 100px;
+             }
         }
 
-        /* 超小屏幕设备的额外调整 */
         @media (max-width: 480px) {
             .header {
                 padding: 0.8rem 1rem;
@@ -284,6 +273,10 @@
             .tool-footer {
                 padding: 0.8rem;
             }
+             .qr-code-img {
+                 width: 80px;
+                 height: 80px;
+             }
         }
     </style>
 </head>
@@ -353,7 +346,7 @@
 
             <!-- Markdown 预览工具 -->
             <div class="tool-card">
-                <div class="tool-header" style="background-color: #4caf50;"> <!-- Green color -->
+                <div class="tool-header" style="background-color: #4caf50;">
                     <h2>Markdown 实时预览</h2>
                 </div>
                 <div class="tool-content">
@@ -367,7 +360,7 @@
 
             <!-- HTML 运行工具 -->
             <div class="tool-card">
-                <div class="tool-header" style="background-color: #ff7f50;"> <!-- Coral color -->
+                <div class="tool-header" style="background-color: #ff7f50;">
                     <h2>HTML 实时运行工具</h2>
                 </div>
                 <div class="tool-content">
@@ -381,7 +374,7 @@
 
             <!-- 图片加水印工具 -->
             <div class="tool-card">
-                <div class="tool-header" style="background-color: #673ab7;"> <!-- Using a different color -->
+                <div class="tool-header" style="background-color: #673ab7;">
                     <h2>图片加水印工具</h2>
                 </div>
                 <div class="tool-content">
@@ -423,7 +416,7 @@
 
             <!-- 二维码生成工具 -->
             <div class="tool-card">
-                <div class="tool-header" style="background-color: #9b59b6;"> <!-- Accent color -->
+                <div class="tool-header" style="background-color: #9b59b6;">
                     <h2>二维码生成工具</h2>
                 </div>
                 <div class="tool-content">
@@ -454,59 +447,24 @@
     <footer class="footer">
         <p>&copy; 2025 Joker的工具箱 | 实用AI工具合集</p>
         <div class="contact-info">
-            <p>👇 联系方式 👇</p>
             <div class="contact-container">
                 <div class="contact-item">
-                    <p>微信号</p>
-                    <div class="wechat-box">
-                        <span class="wechat-icon">💬</span>
-                        <span class="wechat-id">jokerceshi666</span>
-                    </div>
+                    <p>微信联系</p>
+                    <img src="img/joker_weixin.png" alt="微信二维码" class="qr-code-img">
+                    <p class="contact-id-text">jokerceshi666</p>
                 </div>
                 <div class="contact-item">
                     <p>公众号</p>
-                    <div class="public-account-box">
-                        <span class="public-account-icon">📢</span>
-                        <span class="public-account-id">joker测试之路</span>
-                    </div>
+                    <img src="img/joker_gongzhonghao.jpg" alt="公众号二维码" class="qr-code-img">
+                    <p class="contact-id-text">joker测试之路</p>
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
-        // 简化的脚本，只包含基本功能
         document.addEventListener('DOMContentLoaded', function() {
-            // 可以在这里添加一些基本交互功能
             console.log('Joker的工具箱已加载完成');
-            
-            // 点击微信联系方式时的效果
-            const wechatBox = document.querySelector('.wechat-box');
-            if (wechatBox) {
-                wechatBox.addEventListener('click', function() {
-                    // 复制微信ID到剪贴板
-                    const wechatId = document.querySelector('.wechat-id').textContent;
-                    navigator.clipboard.writeText(wechatId).then(() => {
-                        alert('微信号已复制到剪贴板: ' + wechatId);
-                    }).catch(err => {
-                        console.error('复制失败: ', err);
-                    });
-                });
-            }
-            
-            // 点击公众号时的效果
-            const publicAccountBox = document.querySelector('.public-account-box');
-            if (publicAccountBox) {
-                publicAccountBox.addEventListener('click', function() {
-                    // 复制公众号到剪贴板
-                    const publicAccountId = document.querySelector('.public-account-id').textContent;
-                    navigator.clipboard.writeText(publicAccountId).then(() => {
-                        alert('公众号已复制到剪贴板: ' + publicAccountId);
-                    }).catch(err => {
-                        console.error('复制失败: ', err);
-                    });
-                });
-            }
         });
     </script>
 </body>
