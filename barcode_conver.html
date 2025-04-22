@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>条形码转换工具 - Joker的工具箱</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #0277bd;
+            --primary-dark: #004c8c;
+            --secondary-color: #2ecc71;
+            --secondary-dark: #27ae60;
+            --text-color: #333;
+            --light-bg: #f5f5f5;
+            --card-bg: white;
+            --header-color: #2c3e50;
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --neon-glow: 0 0 8px rgba(2, 119, 189, 0.7);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 76, 140, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(2, 119, 189, 0.05) 0%, transparent 20%);
+        }
+
+        .header {
+            background-color: var(--header-color);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header:before, .header:after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #0277bd, transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        .header:before {
+            top: 0;
+            left: -100%;
+        }
+
+        .header:after {
+            bottom: 0;
+            right: -100%;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(calc(100% + 200px));
+            }
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .tool-panel {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-panel:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #004c8c, #0277bd, #58a5f0);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(2, 119, 189, 0.3);
+            outline: none;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--neon-glow), var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .btn:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(30deg);
+            transition: all 0.3s;
+            opacity: 0;
+        }
+
+        .btn:hover:after {
+            opacity: 1;
+            transform: rotate(30deg) translate(-30%, -30%);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .home-link:hover {
+            color: var(--primary-dark);
+            transform: translateX(-5px);
+        }
+
+        .home-link i {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+            text-align: center;
+        }
+
+        .barcode-preview {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: inline-block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .barcode-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f0f8ff;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .options-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-item {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            margin-top: 2rem;
+            background-color: var(--header-color);
+            color: white;
+            position: relative;
+            width: 100%;
+        }
+
+        .footer p {
+            margin: 0.3rem 0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading:after {
+            content: "";
+            width: 40px;
+            height: 40px;
+            border: 5px solid #ddd;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 炫酷科技风格效果 */
+        .tech-bg {
+            position: relative;
+        }
+
+        .tech-bg:before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(2, 119, 189, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .tech-bg:after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            right: -100px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(2, 119, 189, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(2, 119, 189, 0.5);
+            opacity: 0;
+            box-shadow: 0 0 5px rgba(2, 119, 189, 0.7);
+            z-index: 10;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+                opacity: 1;
+            }
+            100% {
+                top: 100%;
+                opacity: 1;
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+
+            .tool-panel {
+                padding: 1.5rem;
+            }
+
+            .options-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 超小屏幕设备的额外调整 */
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.8rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .tool-panel {
+                padding: 1rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1.2rem;
+            }
+        }
+
+        /* 动画元素 */
+        .digital-dots {
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .digital-dots span {
+            width: 4px;
+            height: 4px;
+            background-color: rgba(2, 119, 189, 0.6);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .digital-dots span:nth-child(2n) {
+            animation-delay: 0.5s;
+        }
+
+        .digital-dots span:nth-child(3n) {
+            animation-delay: 1s;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>条形码转换工具</h1>
+        <p>生成标准条形码，支持多种格式</p>
+    </header>
+
+    <div class="container tech-bg">
+        <a href="index.html" class="home-link">
+            <i>←</i> 返回主页
+        </a>
+
+        <div class="tool-panel">
+            <div class="scan-line"></div>
+            <div class="digital-dots">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            
+            <h2>条形码生成器</h2>
+            <p>输入数据并选择条形码类型，生成高质量可扫描的条形码图像</p>
+            
+            <div class="form-group">
+                <label for="barcodeData">输入数据：</label>
+                <input type="text" id="barcodeData" class="form-control" placeholder="输入要生成条形码的文本或数字">
+            </div>
+            
+            <div class="form-group">
+                <label for="showText">显示文本：</label>
+                <select id="showText" class="form-control">
+                    <option value="true">是</option>
+                    <option value="false">否</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <button id="generateBarcode" class="btn btn-block">生成条形码</button>
+            </div>
+            
+            <div id="loading" class="loading"></div>
+            
+            <div id="resultContainer" class="result-container">
+                <h3>生成结果</h3>
+                <div id="barcodePreview" class="barcode-preview"></div>
+                <div class="barcode-info">
+                    <p id="barcodeInfo"></p>
+                </div>
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <button id="downloadBarcode" class="btn btn-secondary">下载条形码图片</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 Joker的工具箱 | 实用AI工具合集</p>
+    </footer>
+
+    <!-- 加载JsBarcode库 - 主CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js" onload="tryInitApp()" onerror="loadFallbackCDN()"></script>
+    
+    <script>
+        let isAppInitialized = false;
+        let jsBarcodeLib = null;
+
+        // Function to attempt app initialization
+        function tryInitApp() {
+            console.log('Attempting app initialization...');
+            if (isAppInitialized) {
+                console.log('App already initialized.');
+                return;
+            }
+            if (typeof JsBarcode !== 'undefined') {
+                console.log('JsBarcode found.');
+                jsBarcodeLib = JsBarcode;
+                initBarcodeApp();
+                isAppInitialized = true;
+            } else if (typeof Jsbacode !== 'undefined') { // Handle potential typo
+                console.warn('Typo library Jsbacode found. Using it.');
+                jsBarcodeLib = Jsbacode;
+                initBarcodeApp();
+                isAppInitialized = true;
+            } else {
+                console.log('JsBarcode not found yet.');
+            }
+        }
+
+        // Function to load fallback CDN
+        function loadFallbackCDN() {
+            console.log('Primary CDN failed. Loading fallback CDN...');
+            var script = document.createElement('script');
+            script.src = "https://unpkg.com/jsbarcode@3.11.5/dist/JsBarcode.all.min.js";
+            script.onload = function() {
+                console.log('Fallback CDN loaded successfully.');
+                tryInitApp(); // Try initializing after fallback loads
+            };
+            script.onerror = function() {
+                console.error('Fallback CDN failed. Loading inline fallback...');
+                loadInlineFallback();
+            };
+            document.body.appendChild(script);
+        }
+
+        // Function to load inline fallback
+        function loadInlineFallback() {
+             console.log('Loading inline JsBarcode fallback...');
+             window.JsBarcode = function(element, data, options) {
+                 // Simplified Code128 implementation (as before)
+                 if (!element || !data) return;
+                 options = options || {};
+                 var displayValue = options.displayValue !== false;
+                 var height = options.height || 100;
+                 var width = options.width || 2;
+                 var margin = options.margin || 10;
+                 var background = options.background || "#ffffff";
+                 var lineColor = options.lineColor || "#000000";
+                 var fontSize = options.fontSize || 16;
+                 var font = options.font || "monospace";
+                 var svgNS = "http://www.w3.org/2000/svg";
+                 var calculatedWidth = ((data.length * 11 + 35) * width + 2 * margin);
+                 var calculatedHeight = height + (displayValue ? 30 : 0);
+
+                 element.setAttribute("width", "100%");
+                 element.setAttribute("height", calculatedHeight + "px");
+                 element.setAttribute("x", "0");
+                 element.setAttribute("y", "0");
+                 element.setAttribute("viewBox", "0 0 " + calculatedWidth + " " + calculatedHeight);
+                 element.innerHTML = ''; // Clear previous content
+
+                 var rect = document.createElementNS(svgNS, "rect");
+                 rect.setAttribute("width", "100%");
+                 rect.setAttribute("height", "100%");
+                 rect.setAttribute("fill", background);
+                 element.appendChild(rect);
+
+                 var barX = margin;
+                 for (var i = 0; i < data.length; i++) {
+                     for (var j = 0; j < 9; j++) {
+                         var barHeight = height;
+                         var fill = j % 2 === 0 ? lineColor : background;
+                         var barWidth = width * (1 + (j % 2));
+                         var bar = document.createElementNS(svgNS, "rect");
+                         bar.setAttribute("x", barX);
+                         bar.setAttribute("y", 0);
+                         bar.setAttribute("width", barWidth);
+                         bar.setAttribute("height", barHeight);
+                         bar.setAttribute("fill", fill);
+                         element.appendChild(bar);
+                         barX += barWidth;
+                     }
+                 }
+
+                 if (displayValue) {
+                     var text = document.createElementNS(svgNS, "text");
+                     text.setAttribute("x", (calculatedWidth / 2).toString());
+                     text.setAttribute("y", (height + fontSize).toString());
+                     text.setAttribute("text-anchor", "middle");
+                     text.setAttribute("font-family", font);
+                     text.setAttribute("font-size", fontSize + "px");
+                     text.setAttribute("fill", lineColor);
+                     text.textContent = data;
+                     element.appendChild(text);
+                 }
+                 console.log("Using inline fallback JsBarcode (Code128 only).");
+                 return element;
+             };
+             console.log("Inline JsBarcode fallback loaded.");
+             tryInitApp(); // Try initializing after inline fallback loads
+             if (!isAppInitialized) {
+                alert('条形码库加载失败。使用简化版生成器 (仅支持Code128)。');
+             }
+        }
+
+        // Main application logic
+        function initBarcodeApp() {
+            console.log('Initializing Barcode App...');
+            const generateBtn = document.getElementById('generateBarcode');
+            const downloadBtn = document.getElementById('downloadBarcode');
+            const resultContainer = document.getElementById('resultContainer');
+            const loading = document.getElementById('loading');
+            const barcodeDataInput = document.getElementById('barcodeData');
+            const showTextSelect = document.getElementById('showText');
+            const barcodePreview = document.getElementById('barcodePreview');
+            const barcodeInfo = document.getElementById('barcodeInfo');
+
+            if (!generateBtn) {
+                console.error('Generate button not found!');
+                return;
+            }
+
+            // Auto-focus input
+            barcodeDataInput.focus();
+
+            // Generate barcode function
+            function generateBarcode() {
+                console.log('Generate button clicked.');
+                const data = barcodeDataInput.value.trim();
+                const showText = showTextSelect.value === 'true';
+
+                if (!data) {
+                    alert('请输入要生成条形码的数据');
+                    barcodeDataInput.focus();
+                    return;
+                }
+
+                if (!jsBarcodeLib) {
+                     alert('条形码库未准备好，请稍候或刷新页面。');
+                     console.error('jsBarcodeLib is not defined in generateBarcode');
+                     return;
+                }
+
+                loading.style.display = 'block';
+                resultContainer.style.display = 'none';
+                barcodePreview.innerHTML = '';
+
+                const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                barcodePreview.appendChild(svgElement);
+
+                try {
+                    console.log(`Generating barcode with data: ${data}`);
+                    jsBarcodeLib(svgElement, data, {
+                        format: 'code128',
+                        width: 2,
+                        height: 100,
+                        displayValue: showText,
+                        margin: 10,
+                        background: '#ffffff',
+                        lineColor: '#000000',
+                        fontSize: 16,
+                        font: 'monospace'
+                    });
+
+                    let formatName = 'Code 128';
+                    barcodeInfo.textContent = `类型: ${formatName} | 数据: ${data}`;
+
+                    svgElement.style.opacity = '0';
+                    setTimeout(() => {
+                        svgElement.style.transition = 'opacity 0.5s ease-in-out';
+                        svgElement.style.opacity = '1';
+                    }, 50); // Shorter delay
+
+                    loading.style.display = 'none';
+                    resultContainer.style.display = 'block';
+                    console.log('Barcode generated successfully.');
+
+                } catch (error) {
+                    loading.style.display = 'none';
+                    alert(`生成条形码失败: ${error.message}`);
+                    console.error('Barcode generation error:', error);
+                }
+            }
+
+            // Download barcode function
+            function downloadBarcode() {
+                console.log('Download button clicked.');
+                const svg = barcodePreview.querySelector('svg');
+                if (!svg) {
+                    console.error('No SVG found to download.');
+                     return;
+                }
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const svgRect = svg.getBoundingClientRect();
+
+                // Use viewBox dimensions for better accuracy if available
+                let canvasWidth = svgRect.width;
+                let canvasHeight = svgRect.height;
+                if (svg.viewBox.baseVal && svg.viewBox.baseVal.width > 0 && svg.viewBox.baseVal.height > 0) {
+                    canvasWidth = svg.viewBox.baseVal.width;
+                    canvasHeight = svg.viewBox.baseVal.height;
+                }
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const img = new Image();
+
+                img.onload = function() {
+                    try {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const pngFile = canvas.toDataURL('image/png');
+                        const downloadLink = document.createElement('a');
+                        const fileName = `barcode_${barcodeDataInput.value.slice(0, 10)}_${Date.now()}.png`;
+                        downloadLink.download = fileName;
+                        downloadLink.href = pngFile;
+                        document.body.appendChild(downloadLink); // Required for Firefox
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        console.log('Barcode downloaded.');
+                    } catch(e) {
+                        console.error("Error during canvas drawing or download:", e);
+                        alert("下载图片时出错。");
+                    }
+                };
+                img.onerror = function() {
+                    console.error("Error loading SVG data into image for download.");
+                    alert("准备下载图片时出错。");
+                }
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            }
+
+            // Attach event listeners
+            generateBtn.addEventListener('click', generateBarcode);
+            downloadBtn.addEventListener('click', downloadBarcode);
+            barcodeDataInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    generateBarcode();
+                }
+            });
+
+            // Update placeholder on type change
+            barcodeDataInput.addEventListener('change', function() {
+                const type = this.value;
+                switch(type) {
+                    case 'ean13': barcodeDataInput.placeholder = '请输入13位数字 (示例: 9780201379624)'; break;
+                    case 'ean8': barcodeDataInput.placeholder = '请输入8位数字 (示例: 96385074)'; break;
+                    case 'upc': barcodeDataInput.placeholder = '请输入12位数字 (示例: 123456789012)'; break;
+                    case 'code39': barcodeDataInput.placeholder = '请输入字母、数字、空格和符号 -$./%+'; break;
+                    case 'code128': barcodeDataInput.placeholder = '请输入文本或数字'; break;
+                    case 'codabar': barcodeDataInput.placeholder = '请输入数字和符号 -$:/.+'; break;
+                    case 'itf14': barcodeDataInput.placeholder = '请输入14位数字 (示例: 10012345678902)'; break;
+                    default: barcodeDataInput.placeholder = '请输入要生成条形码的文本或数字';
+                }
+            });
+            barcodeDataInput.dispatchEvent(new Event('change')); // Initial trigger
+
+            console.log('Barcode App initialized successfully.');
+        }
+
+        // Initial attempt to initialize on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', tryInitApp);
+
+    </script>
+</body>
+</html>

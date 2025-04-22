@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code 生成器 - Joker的工具箱</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --text-color: #e0e0e0;
+            --bg-color: #1a1a2e;
+            --card-bg: #2a2a4a;
+            --input-bg: #1f1f3a;
+            --border-color: #4a4a6a;
+            --header-color: #161625;
+            --border-radius: 8px;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            --accent-glow: 0 0 15px rgba(52, 152, 219, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .header {
+            background-color: var(--header-color);
+            color: var(--primary-color);
+            padding: 1rem 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-bottom: 2px solid var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            text-shadow: var(--accent-glow);
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow), inset 0 0 10px rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-section {
+            width: 100%;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        #text-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        #text-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: var(--accent-glow);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            background: linear-gradient(145deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            flex-grow: 1; /* Make buttons share space */
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: linear-gradient(145deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-secondary {
+             background: linear-gradient(145deg, #6c757d, #5a6268); /* Grey gradient */
+        }
+
+        .btn-secondary:hover {
+             background: linear-gradient(145deg, #5a6268, #6c757d);
+             box-shadow: 0 4px 10px rgba(108, 117, 125, 0.4);
+        }
+
+
+        #qrcode-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: white; /* QR code needs a white background */
+            border-radius: var(--border-radius);
+            min-height: 200px; /* Ensure space even before generation */
+            width: fit-content; /* Adjust width to QR code size */
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        #qrcode-container img {
+             max-width: 100%;
+             display: block; /* Prevents potential extra space below the image */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            .controls {
+                flex-direction: column; /* Stack buttons on smaller screens */
+            }
+            #qrcode-container {
+                 min-height: 150px;
+            }
+        }
+         @media (max-width: 480px) {
+             body {
+                 padding: 0.5rem;
+             }
+             .header {
+                 padding: 0.8rem 1rem;
+                 margin-bottom: 1rem;
+             }
+            .container {
+                padding: 1rem;
+            }
+             .btn {
+                 padding: 0.6rem 1rem;
+                 font-size: 0.9rem;
+             }
+         }
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>二维码生成器</h1>
+    </header>
+
+    <div class="container">
+        <div class="input-section">
+            <label for="text-input">输入文本或URL:</label>
+            <input type="text" id="text-input" placeholder="例如：https://joker.github.io">
+        </div>
+
+        <div class="controls">
+            <button id="generate-btn" class="btn">生成二维码</button>
+            <a href="index.html" class="btn btn-secondary">返回主页</a>
+        </div>
+
+        <div id="qrcode-container">
+            <!-- QR Code will be generated here -->
+            <p style="color: #555; text-align:center;">在此处生成您的二维码</p>
+        </div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generate-btn');
+        const textInput = document.getElementById('text-input');
+        const qrContainer = document.getElementById('qrcode-container');
+        let qrcode = null; // Variable to hold the QRCode instance
+
+        generateBtn.addEventListener('click', () => {
+            const text = textInput.value.trim();
+            if (text === '') {
+                alert('请输入要生成二维码的文本或URL！');
+                textInput.focus();
+                return;
+            }
+
+            // Clear previous QR code
+            qrContainer.innerHTML = '';
+            
+            // Remove previous download button if exists
+            const existingDownloadBtn = document.getElementById('download-btn');
+            if (existingDownloadBtn) existingDownloadBtn.remove(); 
+
+            // Create new QR code instance or update existing one
+            try {
+                if (!qrcode) {
+                     qrcode = new QRCode(qrContainer, {
+                        text: text,
+                        width: 200, // Adjust size as needed
+                        height: 200,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H // High correction level
+                    });
+                } else {
+                    qrcode.clear(); // Clear the existing QR code visuals
+                    qrcode.makeCode(text); // Generate new QR code with the same instance
+                }
+                
+                // Add download button after a short delay to ensure canvas is ready
+                setTimeout(addDownloadButton, 100); // Add a 100ms delay
+
+            } catch (error) {
+                console.error("QR Code generation failed:", error);
+                alert("生成二维码时出错，请检查输入或稍后再试。");
+                // Optionally display error in the container
+                qrContainer.innerHTML = '<p style="color: red; text-align:center;">生成失败</p>';
+            }
+        });
+
+         // Optional: Function to add a download button
+         
+         function addDownloadButton() {
+            const existingBtn = document.getElementById('download-btn');
+            if (existingBtn) existingBtn.remove(); // Remove old button if exists
+
+            // Find the canvas element generated by qrcode.js
+            const canvas = qrContainer.querySelector('canvas'); 
+            if (!canvas) return; 
+
+            // Create a visible button instead of a direct download link
+            const downloadTriggerBtn = document.createElement('button');
+            downloadTriggerBtn.id = 'download-btn'; // Keep the ID for potential removal
+            downloadTriggerBtn.textContent = '下载二维码';
+            downloadTriggerBtn.classList.add('btn'); 
+            downloadTriggerBtn.style.marginTop = '1rem'; 
+            downloadTriggerBtn.style.display = 'inline-block'; 
+            downloadTriggerBtn.style.background = 'linear-gradient(145deg, #2ecc71, #27ae60)';
+            downloadTriggerBtn.style.width = 'auto'; 
+            downloadTriggerBtn.style.flexGrow = '0'; 
+
+            // Add event listener to the trigger button
+            downloadTriggerBtn.addEventListener('click', () => {
+                const tempLink = document.createElement('a'); // Define link outside try/finally
+                try {
+                    const currentCanvas = qrContainer.querySelector('canvas');
+                    if (!currentCanvas) {
+                        alert('无法找到二维码图像。');
+                        return;
+                    }
+                    const dataUrl = currentCanvas.toDataURL('image/png');
+                    console.log("Generated Data URL (first 100 chars):", dataUrl.substring(0, 100)); // Log for debugging
+                    if (!dataUrl || dataUrl === 'data:,') {
+                        alert('无法获取二维码数据。');
+                        return;
+                    }
+
+                    // Configure the temporary link
+                    tempLink.href = dataUrl;
+                    tempLink.download = 'qrcode.png'; 
+                    
+                    // Append and click the temporary link
+                    document.body.appendChild(tempLink);
+                    tempLink.click();
+
+                } catch (error) {
+                    console.error("Download failed:", error);
+                    alert("下载二维码时出错。");
+                } finally {
+                     // Ensure the temporary link is removed
+                    if (tempLink.parentNode === document.body) {
+                         document.body.removeChild(tempLink);
+                    }
+                }
+            });
+
+            // Insert the trigger button after the QR code container
+            qrContainer.parentNode.insertBefore(downloadTriggerBtn, qrContainer.nextSibling);
+        }
+        
+
+         // Trigger generation on Enter key press in the input field
+         textInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission if inside a form
+                generateBtn.click(); // Trigger the generate button click
+            }
+         });
+
+    </script>
+</body>
+</html> 
