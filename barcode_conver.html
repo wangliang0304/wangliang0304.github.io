@@ -30,7 +30,7 @@
             background-color: var(--light-bg);
             color: var(--text-color);
             line-height: 1.6;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 10% 20%, rgba(0, 76, 140, 0.05) 0%, transparent 20%),
                 radial-gradient(circle at 90% 80%, rgba(2, 119, 189, 0.05) 0%, transparent 20%);
         }
@@ -448,15 +448,28 @@
                 <span></span><span></span><span></span><span></span><span></span>
                 <span></span><span></span><span></span><span></span><span></span>
             </div>
-            
+
             <h2>条形码生成器</h2>
             <p>输入数据并选择条形码类型，生成高质量可扫描的条形码图像</p>
-            
+
+            <div class="form-group info-panel" style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #0277bd; margin-bottom: 20px;">
+                <h4 style="margin-top: 0; color: #0277bd;">常见条形码格式说明：</h4>
+                <ul style="margin-bottom: 0; padding-left: 20px;">
+                    <li><strong>EAN-13</strong>: 13位数字，常用于零售商品</li>
+                    <li><strong>EAN-8</strong>: 8位数字，用于小型包装</li>
+                    <li><strong>UPC-A</strong>: 12位数字，北美商品标准</li>
+                    <li><strong>CODE128</strong>: 支持所有ASCII字符</li>
+                    <li><strong>CODE39</strong>: 支持数字、大写字母和部分符号</li>
+                    <li><strong>ITF</strong>: 仅支持偶数位数字</li>
+                </ul>
+                <p style="margin-top: 10px; margin-bottom: 0; font-style: italic;">提示：本工具会自动检测并尝试多种格式，若生成失败请检查输入是否符合某种条码规范。</p>
+            </div>
+
             <div class="form-group">
                 <label for="barcodeData">输入数据：</label>
-                <input type="text" id="barcodeData" class="form-control" placeholder="输入要生成条形码的文本或数字">
+                <input type="text" id="barcodeData" class="form-control" placeholder="输入要生成条形码的文本、URL或数字">
             </div>
-            
+
             <div class="form-group">
                 <label for="showText">显示文本：</label>
                 <select id="showText" class="form-control">
@@ -464,13 +477,13 @@
                     <option value="false">否</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <button id="generateBarcode" class="btn btn-block">生成条形码</button>
             </div>
-            
+
             <div id="loading" class="loading"></div>
-            
+
             <div id="resultContainer" class="result-container">
                 <h3>生成结果</h3>
                 <div id="barcodePreview" class="barcode-preview"></div>
@@ -488,121 +501,10 @@
         <p>&copy; 2025 Joker的工具箱 | 实用AI工具合集</p>
     </footer>
 
-    <!-- 加载JsBarcode库 - 主CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js" onload="tryInitApp()" onerror="loadFallbackCDN()"></script>
-    
+    <!-- Load JsBarcode library locally -->
+    <script src="js/jsbarcode.all.min.js"></script>
+
     <script>
-        let isAppInitialized = false;
-        let jsBarcodeLib = null;
-
-        // Function to attempt app initialization
-        function tryInitApp() {
-            console.log('Attempting app initialization...');
-            if (isAppInitialized) {
-                console.log('App already initialized.');
-                return;
-            }
-            if (typeof JsBarcode !== 'undefined') {
-                console.log('JsBarcode found.');
-                jsBarcodeLib = JsBarcode;
-                initBarcodeApp();
-                isAppInitialized = true;
-            } else if (typeof Jsbacode !== 'undefined') { // Handle potential typo
-                console.warn('Typo library Jsbacode found. Using it.');
-                jsBarcodeLib = Jsbacode;
-                initBarcodeApp();
-                isAppInitialized = true;
-            } else {
-                console.log('JsBarcode not found yet.');
-            }
-        }
-
-        // Function to load fallback CDN
-        function loadFallbackCDN() {
-            console.log('Primary CDN failed. Loading fallback CDN...');
-            var script = document.createElement('script');
-            script.src = "https://unpkg.com/jsbarcode@3.11.5/dist/JsBarcode.all.min.js";
-            script.onload = function() {
-                console.log('Fallback CDN loaded successfully.');
-                tryInitApp(); // Try initializing after fallback loads
-            };
-            script.onerror = function() {
-                console.error('Fallback CDN failed. Loading inline fallback...');
-                loadInlineFallback();
-            };
-            document.body.appendChild(script);
-        }
-
-        // Function to load inline fallback
-        function loadInlineFallback() {
-             console.log('Loading inline JsBarcode fallback...');
-             window.JsBarcode = function(element, data, options) {
-                 // Simplified Code128 implementation (as before)
-                 if (!element || !data) return;
-                 options = options || {};
-                 var displayValue = options.displayValue !== false;
-                 var height = options.height || 100;
-                 var width = options.width || 2;
-                 var margin = options.margin || 10;
-                 var background = options.background || "#ffffff";
-                 var lineColor = options.lineColor || "#000000";
-                 var fontSize = options.fontSize || 16;
-                 var font = options.font || "monospace";
-                 var svgNS = "http://www.w3.org/2000/svg";
-                 var calculatedWidth = ((data.length * 11 + 35) * width + 2 * margin);
-                 var calculatedHeight = height + (displayValue ? 30 : 0);
-
-                 element.setAttribute("width", "100%");
-                 element.setAttribute("height", calculatedHeight + "px");
-                 element.setAttribute("x", "0");
-                 element.setAttribute("y", "0");
-                 element.setAttribute("viewBox", "0 0 " + calculatedWidth + " " + calculatedHeight);
-                 element.innerHTML = ''; // Clear previous content
-
-                 var rect = document.createElementNS(svgNS, "rect");
-                 rect.setAttribute("width", "100%");
-                 rect.setAttribute("height", "100%");
-                 rect.setAttribute("fill", background);
-                 element.appendChild(rect);
-
-                 var barX = margin;
-                 for (var i = 0; i < data.length; i++) {
-                     for (var j = 0; j < 9; j++) {
-                         var barHeight = height;
-                         var fill = j % 2 === 0 ? lineColor : background;
-                         var barWidth = width * (1 + (j % 2));
-                         var bar = document.createElementNS(svgNS, "rect");
-                         bar.setAttribute("x", barX);
-                         bar.setAttribute("y", 0);
-                         bar.setAttribute("width", barWidth);
-                         bar.setAttribute("height", barHeight);
-                         bar.setAttribute("fill", fill);
-                         element.appendChild(bar);
-                         barX += barWidth;
-                     }
-                 }
-
-                 if (displayValue) {
-                     var text = document.createElementNS(svgNS, "text");
-                     text.setAttribute("x", (calculatedWidth / 2).toString());
-                     text.setAttribute("y", (height + fontSize).toString());
-                     text.setAttribute("text-anchor", "middle");
-                     text.setAttribute("font-family", font);
-                     text.setAttribute("font-size", fontSize + "px");
-                     text.setAttribute("fill", lineColor);
-                     text.textContent = data;
-                     element.appendChild(text);
-                 }
-                 console.log("Using inline fallback JsBarcode (Code128 only).");
-                 return element;
-             };
-             console.log("Inline JsBarcode fallback loaded.");
-             tryInitApp(); // Try initializing after inline fallback loads
-             if (!isAppInitialized) {
-                alert('条形码库加载失败。使用简化版生成器 (仅支持Code128)。');
-             }
-        }
-
         // Main application logic
         function initBarcodeApp() {
             console.log('Initializing Barcode App...');
@@ -635,9 +537,10 @@
                     return;
                 }
 
-                if (!jsBarcodeLib) {
-                     alert('条形码库未准备好，请稍候或刷新页面。');
-                     console.error('jsBarcodeLib is not defined in generateBarcode');
+                // Check if JsBarcode library is loaded
+                if (typeof JsBarcode === 'undefined') {
+                     alert('条形码库未能加载，请确保 js/jsbarcode.all.min.js 文件存在或刷新页面。');
+                     console.error('JsBarcode is not defined in generateBarcode');
                      return;
                 }
 
@@ -648,28 +551,119 @@
                 const svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 barcodePreview.appendChild(svgElement);
 
+                // 尝试生成条码的函数, 带格式参数
+                function tryGenerateBarcode(format) {
+                    try {
+                        console.log(`Trying format: ${format} for data: ${data}`);
+                        
+                        // 特别处理Code128，它应该能处理任何ASCII文本
+                        if (format === "CODE128") {
+                            JsBarcode(svgElement, data, {
+                                format: format,
+                                displayValue: showText,
+                                flat: true, // 更扁平的设计
+                                fontSize: 18,
+                                height: 70,
+                                margin: 10,
+                                background: "#ffffff",
+                                lineColor: "#000000",
+                                textMargin: 5,
+                                valid: function(valid) {
+                                    // 对于CODE128，我们强制返回true以尝试生成
+                                    return true;
+                                }
+                            });
+                        } 
+                        // 处理字母数字混合的文本（如'joker'）
+                        else if (format === "CODE39" && /^[0-9A-Z\-\.\/\+\%\$\s]+$/i.test(data)) {
+                            // 转换为大写以确保兼容性
+                            JsBarcode(svgElement, data.toUpperCase(), {
+                                format: format,
+                                displayValue: showText,
+                                mod43: false
+                            });
+                        }
+                        // 对于只支持数字的格式，如果输入是数字则尝试
+                        else if ((format === "EAN13" || format === "EAN8" || format === "UPC" || 
+                                  format === "UPCE" || format === "ITF14" || format === "ITF") && 
+                                  /^\d+$/.test(data)) {
+                            JsBarcode(svgElement, data, {
+                                format: format,
+                                displayValue: showText,
+                                valid: function(valid) {
+                                    return valid;
+                                }
+                            });
+                        }
+                        // 自动检测或其他格式
+                        else if (format === "auto") {
+                            JsBarcode(svgElement, data, {
+                                format: format,
+                                displayValue: showText,
+                                valid: function(valid) {
+                                    return valid;
+                                }
+                            });
+                        }
+                        // 其他格式使用默认设置
+                        else {
+                            JsBarcode(svgElement, data, {
+                                format: format,
+                                displayValue: showText
+                            });
+                        }
+                        
+                        // 检查是否成功生成SVG内容
+                        const hasBarcode = svgElement.querySelector("rect") !== null;
+                        if (!hasBarcode) {
+                            throw new Error("条码生成失败 - 没有生成矩形元素");
+                        }
+                        
+                        return true; // 成功
+                    } catch (e) {
+                        console.log(`Format ${format} failed: ${e.message}`);
+                        // 清除可能部分生成的内容
+                        svgElement.innerHTML = '';
+                        return false; // 失败
+                    }
+                }
+
                 try {
-                    console.log(`Generating barcode with data: ${data}`);
-                    jsBarcodeLib(svgElement, data, {
-                        format: 'code128',
-                        width: 2,
-                        height: 100,
-                        displayValue: showText,
-                        margin: 10,
-                        background: '#ffffff',
-                        lineColor: '#000000',
-                        fontSize: 16,
-                        font: 'monospace'
-                    });
+                    // 首先尝试自动检测
+                    let success = tryGenerateBarcode("auto");
+                    
+                    // 如果自动检测失败，尝试特定格式
+                    if (!success) {
+                        // 按特定顺序尝试不同的条码格式，优先尝试支持文本的格式
+                        const formats = [
+                            "CODE128", "CODE39", // 优先尝试这两种格式，它们支持文本
+                            "codabar", // 支持部分字符
+                            "EAN13", "EAN8", "EAN5", "EAN2", 
+                            "UPC", "UPCE", "ITF14", "ITF", "MSI", "pharmacode"
+                        ];
+                        
+                        for (const format of formats) {
+                            success = tryGenerateBarcode(format);
+                            if (success) {
+                                console.log(`成功使用 ${format} 格式生成条形码`);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!success) {
+                        throw new Error("无法为该数据生成任何格式的条形码");
+                    }
 
-                    let formatName = 'Code 128';
-                    barcodeInfo.textContent = `类型: ${formatName} | 数据: ${data}`;
+                    // 更新条码信息
+                    barcodeInfo.textContent = `数据: ${data}`;
 
+                    // 添加淡入效果
                     svgElement.style.opacity = '0';
                     setTimeout(() => {
                         svgElement.style.transition = 'opacity 0.5s ease-in-out';
                         svgElement.style.opacity = '1';
-                    }, 50); // Shorter delay
+                    }, 50);
 
                     loading.style.display = 'none';
                     resultContainer.style.display = 'block';
@@ -677,8 +671,36 @@
 
                 } catch (error) {
                     loading.style.display = 'none';
-                    alert(`生成条形码失败: ${error.message}`);
-                    console.error('Barcode generation error:', error);
+                    console.error('Barcode generation final error:', error);
+                    
+                    // 提供更友好的错误信息
+                    let errorMsg = "无法为输入的数据生成条形码。请检查以下常见问题：";
+                    
+                    // 根据输入类型提供具体建议
+                    if (/^[a-zA-Z]+$/.test(data)) {
+                        // 仅包含字母的情况
+                        errorMsg += "\n\n您输入的是纯字母文本，建议尝试：";
+                        errorMsg += "\n• 确保使用英文字母，不要使用特殊字符";
+                        errorMsg += "\n• 尝试使用大写字母，某些条码格式对大小写敏感";
+                        errorMsg += "\n• 条形码一般用于编码数字，可以考虑加入数字";
+                    } else if (/^\d+$/.test(data)) {
+                        // 仅包含数字的情况
+                        errorMsg += "\n\n您输入的是纯数字，请注意：";
+                        errorMsg += "\n• EAN-13需要正好13位数字";
+                        errorMsg += "\n• EAN-8需要正好8位数字";
+                        errorMsg += "\n• UPC-A需要正好12位数字";
+                        errorMsg += "\n• ITF需要偶数位数字";
+                    } else {
+                        // 混合情况
+                        errorMsg += "\n\n您输入的是混合文本，请注意：";
+                        errorMsg += "\n• CODE128支持所有ASCII字符，但可能有格式要求";
+                        errorMsg += "\n• CODE39主要支持大写字母、数字和部分符号(-, ., $, /, +, %, 空格)";
+                        errorMsg += "\n• 尝试简化您的输入，去除特殊字符";
+                    }
+                    
+                    errorMsg += "\n\n如需生成通用二维码，请使用我们的二维码生成器工具。";
+                    
+                    alert(errorMsg);
                 }
             }
 
@@ -744,27 +766,14 @@
                 }
             });
 
-            // Update placeholder on type change
-            barcodeDataInput.addEventListener('change', function() {
-                const type = this.value;
-                switch(type) {
-                    case 'ean13': barcodeDataInput.placeholder = '请输入13位数字 (示例: 9780201379624)'; break;
-                    case 'ean8': barcodeDataInput.placeholder = '请输入8位数字 (示例: 96385074)'; break;
-                    case 'upc': barcodeDataInput.placeholder = '请输入12位数字 (示例: 123456789012)'; break;
-                    case 'code39': barcodeDataInput.placeholder = '请输入字母、数字、空格和符号 -$./%+'; break;
-                    case 'code128': barcodeDataInput.placeholder = '请输入文本或数字'; break;
-                    case 'codabar': barcodeDataInput.placeholder = '请输入数字和符号 -$:/.+'; break;
-                    case 'itf14': barcodeDataInput.placeholder = '请输入14位数字 (示例: 10012345678902)'; break;
-                    default: barcodeDataInput.placeholder = '请输入要生成条形码的文本或数字';
-                }
-            });
-            barcodeDataInput.dispatchEvent(new Event('change')); // Initial trigger
+            // Update placeholder to be more general
+            barcodeDataInput.placeholder = '输入文本、URL或数字生成条形码';
 
             console.log('Barcode App initialized successfully.');
         }
 
-        // Initial attempt to initialize on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', tryInitApp);
+        // Initialize the app once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initBarcodeApp);
 
     </script>
 </body>
