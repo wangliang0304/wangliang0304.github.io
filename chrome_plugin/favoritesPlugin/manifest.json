@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "收藏夹管理器",
+  "version": "1.0.0",
+  "description": "智能整理和搜索Chrome收藏夹的工具",
+  "permissions": [
+    "bookmarks",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "收藏夹管理器"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
