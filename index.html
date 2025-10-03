@@ -278,9 +278,140 @@
                  height: 80px;
              }
         }
+
+        /* 密钥验证弹窗样式 */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .auth-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .auth-content h3 {
+            color: var(--header-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .auth-content .lock-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-btn-confirm {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .auth-btn-confirm:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .auth-btn-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .auth-btn-cancel:hover {
+            background-color: #d0d0d0;
+        }
+
+        .auth-error {
+            color: var(--danger-color);
+            margin-top: 10px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- 密钥验证弹窗 -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-content">
+            <div class="lock-icon">🔐</div>
+            <h3>请输入访问密钥</h3>
+            <input type="password" id="authInput" class="auth-input" placeholder="请输入密钥" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <div class="auth-buttons">
+                <button class="auth-btn auth-btn-cancel" onclick="closeAuthModal()">取消</button>
+                <button class="auth-btn auth-btn-confirm" onclick="verifyAuth()">确认</button>
+            </div>
+            <div id="authError" class="auth-error"></div>
+        </div>
+    </div>
+
     <header class="header">
         <h1>Joker的工具箱</h1>
         <p>实用AI工具合集</p>
@@ -305,14 +436,14 @@
             <!-- 短链接工具 -->
             <div class="tool-card">
                 <div class="tool-header">
-                    <h2>短网址转换工具</h2>
+                    <h2>短网址转换工具 🔒</h2>
                 </div>
                 <div class="tool-content">
                     <p>快速生成短网址，方便分享和传播。</p>
                     <p>支持各种长链接转换，使用TinyURL API生成可靠的短链接。</p>
                 </div>
                 <div class="tool-footer">
-                    <a href="short_link_url.html" class="btn" target="_blank">立即使用</a>
+                    <a href="#" class="btn locked-tool" data-url="short_link_url.html" style="background-color: #3498db;">立即使用</a>
                 </div>
             </div>
 
@@ -473,14 +604,14 @@
             <!-- 二维码卡片生成器 -->
             <div class="tool-card">
                 <div class="tool-header" style="background-color: #9b59b6;">
-                    <h2>二维码卡片生成器</h2>
+                    <h2>二维码卡片生成器 🔒</h2>
                 </div>
                 <div class="tool-content">
                     <p>上传二维码图片，添加自定义文案，生成精美的宣传卡片。</p>
                     <p>提供6种吸引人的卡片样式，支持下载高清图片，适合营销推广和社交分享。</p>
                 </div>
                 <div class="tool-footer">
-                    <a href="qrcode_card_generator.html" class="btn" style="background-color: #9b59b6;" target="_blank">立即使用</a>
+                    <a href="#" class="btn locked-tool" data-url="qrcode_card_generator.html" style="background-color: #9b59b6;">立即使用</a>
                 </div>
             </div>
 
@@ -533,9 +664,91 @@
     </footer>
 
     <script>
+        // 密钥验证相关变量
+        let targetUrl = '';
+        const CORRECT_PASSWORD = 'joker';
+
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Joker的工具箱已加载完成');
+
+            // 为所有需要验证的工具添加点击事件
+            const lockedTools = document.querySelectorAll('.locked-tool');
+            lockedTools.forEach(tool => {
+                tool.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    targetUrl = this.getAttribute('data-url');
+                    openAuthModal();
+                });
+            });
+
+            // 密钥输入框回车事件
+            const authInput = document.getElementById('authInput');
+            authInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyAuth();
+                }
+            });
+
+            // 点击弹窗外部关闭
+            const authModal = document.getElementById('authModal');
+            authModal.addEventListener('click', function(e) {
+                if (e.target === authModal) {
+                    closeAuthModal();
+                }
+            });
         });
+
+        // 打开密钥验证弹窗
+        function openAuthModal() {
+            const modal = document.getElementById('authModal');
+            const input = document.getElementById('authInput');
+            const error = document.getElementById('authError');
+
+            modal.classList.add('show');
+            input.value = '';
+            error.classList.remove('show');
+            error.textContent = '';
+
+            setTimeout(() => input.focus(), 100);
+        }
+
+        // 关闭密钥验证弹窗
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('show');
+            targetUrl = '';
+        }
+
+        // 验证密钥
+        function verifyAuth() {
+            const input = document.getElementById('authInput');
+            const error = document.getElementById('authError');
+            const password = input.value.trim();
+
+            if (password === '') {
+                error.textContent = '请输入密钥';
+                error.classList.add('show');
+                return;
+            }
+
+            if (password === CORRECT_PASSWORD) {
+                // 密钥正确，跳转到目标页面
+                // 先保存目标URL，因为closeAuthModal会清空targetUrl
+                const urlToOpen = targetUrl;
+                closeAuthModal();
+
+                // 立即打开新窗口，避免被浏览器拦截
+                if (urlToOpen) {
+                    window.open(urlToOpen, '_blank');
+                }
+            } else {
+                // 密钥错误
+                error.textContent = '密钥错误，请联系joker授权：jokerceshi666';
+                error.classList.add('show');
+                input.value = '';
+                input.focus();
+            }
+        }
     </script>
 </body>
 </html>
