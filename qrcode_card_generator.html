@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码卡片生成器 - Joker的工具箱</title>
+    <style>
+        :root {
+            --primary-color: #9b59b6;
+            --primary-dark: #8e44ad;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header button {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 30px;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .header button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: var(--primary-color);
+            margin-right: 10px;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-dark);
+            background-color: #e9ecef;
+        }
+
+        .upload-area.dragover {
+            background-color: #e7e3ff;
+            border-color: var(--primary-dark);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        #qrcodePreview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 20px auto;
+            display: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            resize: vertical;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .char-count {
+            text-align: right;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .char-count.warning {
+            color: var(--accent-color);
+        }
+
+        .style-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .style-option {
+            border: 3px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            background-color: white;
+        }
+
+        .style-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .style-option.selected {
+            border-color: var(--primary-color);
+            background-color: #f3e5ff;
+        }
+
+        .style-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .style-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .style-gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .style-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .style-gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .style-gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .style-gradient-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .generate-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #cardPreview {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .card-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-inner {
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+
+        .card-qrcode {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .card-qrcode img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-text {
+            font-size: 1.3em;
+            line-height: 1.6;
+            margin-top: 20px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            white-space: pre-wrap;
+        }
+
+        .download-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .download-btn:hover {
+            background-color: #229954;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 40px;
+        }
+
+        .footer h3 {
+            margin-bottom: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .contact-item img {
+            width: 120px;
+            height: 120px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .style-selector {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .card-inner {
+                padding: 25px;
+            }
+
+            .card-text {
+                font-size: 1.1em;
+            }
+
+            .contact-info {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .style-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .upload-area {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>📇 二维码卡片生成器</h1>
+        <button onclick="location.href='index.html'">返回首页</button>
+    </header>
+
+    <div class="container">
+        <!-- 步骤 1: 上传二维码 -->
+        <div class="section">
+            <h2>步骤 1: 上传二维码</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📷</div>
+                <p>点击或拖拽上传二维码图片</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 10px;">支持 JPG、PNG、GIF 格式</p>
+                <input type="file" id="qrcodeInput" accept="image/*">
+            </div>
+            <img id="qrcodePreview" alt="二维码预览">
+        </div>
+
+        <!-- 步骤 2: 输入文案 -->
+        <div class="section">
+            <h2>步骤 2: 输入文案</h2>
+            <textarea id="cardText" rows="4" maxlength="150" placeholder="请输入卡片文案（最多150字）"></textarea>
+            <div class="char-count">
+                <span id="charCount">0</span> / 150
+            </div>
+        </div>
+
+        <!-- 步骤 3: 选择卡片样式 -->
+        <div class="section">
+            <h2>步骤 3: 选择卡片样式</h2>
+            <div class="style-selector">
+                <div class="style-option selected" data-style="1">
+                    <div class="style-preview style-gradient-1"></div>
+                    <p>紫色梦幻</p>
+                </div>
+                <div class="style-option" data-style="2">
+                    <div class="style-preview style-gradient-2"></div>
+                    <p>粉红魅力</p>
+                </div>
+                <div class="style-option" data-style="3">
+                    <div class="style-preview style-gradient-3"></div>
+                    <p>蓝色清新</p>
+                </div>
+                <div class="style-option" data-style="4">
+                    <div class="style-preview style-gradient-4"></div>
+                    <p>绿色活力</p>
+                </div>
+                <div class="style-option" data-style="5">
+                    <div class="style-preview style-gradient-5"></div>
+                    <p>暖色温馨</p>
+                </div>
+                <div class="style-option" data-style="6">
+                    <div class="style-preview style-gradient-6"></div>
+                    <p>深邃神秘</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成按钮 -->
+        <button class="generate-btn" id="generateBtn" disabled>生成卡片</button>
+
+        <!-- 卡片预览 -->
+        <div id="cardPreview">
+            <div class="section">
+                <h2>卡片预览</h2>
+                <div class="card-container" id="cardContainer">
+                    <div class="card-inner style-gradient-1" id="cardInner">
+                        <div class="card-qrcode">
+                            <img id="cardQrcode" alt="二维码">
+                        </div>
+                        <div class="card-text" id="cardTextDisplay"></div>
+                    </div>
+                </div>
+                <button class="download-btn" id="downloadBtn">下载卡片</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <h3>联系方式</h3>
+        <div class="contact-info">
+            <div class="contact-item">
+                <p>微信: jokerceshi666</p>
+                <img src="img/wechat_qr.png" alt="微信二维码">
+            </div>
+            <div class="contact-item">
+                <p>公众号: joker测试之路</p>
+                <img src="img/official_qr.png" alt="公众号二维码">
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        let qrcodeFile = null;
+        let selectedStyle = '1';
+
+        // 上传区域交互
+        const uploadArea = document.getElementById('uploadArea');
+        const qrcodeInput = document.getElementById('qrcodeInput');
+        const qrcodePreview = document.getElementById('qrcodePreview');
+        const cardText = document.getElementById('cardText');
+        const charCount = document.getElementById('charCount');
+        const generateBtn = document.getElementById('generateBtn');
+        const cardPreview = document.getElementById('cardPreview');
+        const cardQrcode = document.getElementById('cardQrcode');
+        const cardTextDisplay = document.getElementById('cardTextDisplay');
+        const cardInner = document.getElementById('cardInner');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // 点击上传
+        uploadArea.addEventListener('click', () => qrcodeInput.click());
+
+        // 文件选择
+        qrcodeInput.addEventListener('change', handleFileSelect);
+
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // 处理文件选择
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('请上传图片文件！');
+                return;
+            }
+
+            qrcodeFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                qrcodePreview.src = e.target.result;
+                qrcodePreview.style.display = 'block';
+                checkGenerateEnabled();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 文案输入
+        cardText.addEventListener('input', () => {
+            const length = cardText.value.length;
+            charCount.textContent = length;
+            charCount.parentElement.classList.toggle('warning', length >= 140);
+            checkGenerateEnabled();
+        });
+
+        // 样式选择
+        document.querySelectorAll('.style-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.style-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedStyle = option.dataset.style;
+            });
+        });
+
+        // 检查是否可以生成
+        function checkGenerateEnabled() {
+            generateBtn.disabled = !(qrcodeFile && cardText.value.trim());
+        }
+
+        // 生成卡片
+        generateBtn.addEventListener('click', () => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                cardQrcode.src = e.target.result;
+                cardTextDisplay.textContent = cardText.value;
+                cardInner.className = 'card-inner style-gradient-' + selectedStyle;
+                cardPreview.style.display = 'block';
+                cardPreview.scrollIntoView({ behavior: 'smooth' });
+            };
+            reader.readAsDataURL(qrcodeFile);
+        });
+
+        // 下载卡片
+        downloadBtn.addEventListener('click', async () => {
+            const cardContainer = document.getElementById('cardContainer');
+
+            try {
+                const canvas = await html2canvas(cardContainer, {
+                    backgroundColor: null,
+                    scale: 2,
+                    logging: false,
+                    useCORS: true
+                });
+
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '二维码卡片_' + Date.now() + '.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            } catch (error) {
+                console.error('生成图片失败:', error);
+                alert('生成图片失败，请重试！');
+            }
+        });
+    </script>
+</body>
+</html>
