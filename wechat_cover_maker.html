@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公众号封面制作工具 - Joker的工具箱</title>
+    <style>
+        :root {
+            --primary-color: #07c160;
+            --primary-dark: #06ad56;
+            --secondary-color: #576b95;
+            --accent-color: #fa5151;
+            --success-color: #07c160;
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header button {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 30px;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .header button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .info-box {
+            background-color: #e7f7ef;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background-color: var(--primary-color);
+            margin-right: 10px;
+        }
+
+        .ratio-selector {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .ratio-option {
+            flex: 1;
+            min-width: 180px;
+            border: 3px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            background-color: white;
+        }
+
+        .ratio-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .ratio-option.selected {
+            border-color: var(--primary-color);
+            background-color: #e7f7ef;
+        }
+
+        .ratio-preview {
+            margin: 10px auto;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .ratio-900-383 {
+            width: 100%;
+            max-width: 200px;
+            padding-top: 42.56%; /* 383/900 */
+        }
+
+        .ratio-500-400 {
+            width: 100%;
+            max-width: 150px;
+            padding-top: 80%; /* 400/500 */
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f8f9fa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-dark);
+            background-color: #e9ecef;
+        }
+
+        .upload-area.dragover {
+            background-color: #e7f7ef;
+            border-color: var(--primary-dark);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        #imagePreview {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 20px auto;
+            display: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .text-config {
+            display: grid;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"], textarea, input[type="color"], input[type="number"], select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            width: 80px;
+            height: 45px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .value-display {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .position-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .position-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: var(--border-radius);
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .position-btn:hover {
+            border-color: var(--primary-color);
+            background-color: #e7f7ef;
+        }
+
+        .position-btn.active {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .generate-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #coverPreview {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .cover-canvas-container {
+            position: relative;
+            margin: 20px auto;
+            box-shadow: var(--shadow-hover);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        #coverCanvas {
+            display: block;
+            width: 100%;
+            max-width: 900px;
+            height: auto;
+            margin: 0 auto;
+        }
+
+        .download-btn {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .download-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 40px;
+        }
+
+        .footer h3 {
+            margin-bottom: 15px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .contact-item img {
+            width: 120px;
+            height: 120px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .ratio-selector {
+                flex-direction: column;
+            }
+
+            .ratio-option {
+                min-width: 100%;
+            }
+
+            .contact-info {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .upload-area {
+                padding: 25px;
+            }
+
+            .slider-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>📰 公众号封面制作工具</h1>
+        <button onclick="location.href='index.html'">返回首页</button>
+    </header>
+
+    <div class="container">
+        <!-- 尺寸说明 -->
+        <div class="info-box">
+            <h3>📏 公众号封面尺寸说明</h3>
+            <p><strong>首图封面：</strong>900px × 383px（推荐，显示在文章顶部和分享链接）</p>
+            <p><strong>次图封面：</strong>500px × 400px（多图文推送中的第2-8篇文章封面）</p>
+        </div>
+
+        <!-- 步骤 1: 选择封面尺寸 -->
+        <div class="section">
+            <h2>步骤 1: 选择封面尺寸</h2>
+            <div class="ratio-selector">
+                <div class="ratio-option selected" data-ratio="900-383">
+                    <h3>首图封面</h3>
+                    <div class="ratio-preview ratio-900-383"></div>
+                    <p style="margin-top: 10px;">900 × 383 px</p>
+                    <p style="font-size: 0.9em; color: #666;">标准封面尺寸</p>
+                </div>
+                <div class="ratio-option" data-ratio="500-400">
+                    <h3>次图封面</h3>
+                    <div class="ratio-preview ratio-500-400"></div>
+                    <p style="margin-top: 10px;">500 × 400 px</p>
+                    <p style="font-size: 0.9em; color: #666;">多图文次条</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 2: 上传背景图片 -->
+        <div class="section">
+            <h2>步骤 2: 上传背景图片</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">🖼️</div>
+                <p>点击或拖拽上传背景图片</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 10px;">支持 JPG、PNG、GIF 格式</p>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+            <img id="imagePreview" alt="图片预览">
+        </div>
+
+        <!-- 步骤 3: 配置文字 -->
+        <div class="section">
+            <h2>步骤 3: 配置文字</h2>
+            <div class="text-config">
+                <div class="input-group">
+                    <label>标题文字</label>
+                    <textarea id="titleText" rows="2" maxlength="50" placeholder="请输入标题（最多50字）"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>副标题文字（可选）</label>
+                    <input type="text" id="subtitleText" maxlength="30" placeholder="请输入副标题（最多30字）">
+                </div>
+
+                <div class="input-group">
+                    <label>文字颜色</label>
+                    <div class="color-picker-group">
+                        <input type="color" id="textColor" value="#ffffff">
+                        <span id="textColorValue">#ffffff</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>文字大小</label>
+                    <div class="slider-group">
+                        <input type="range" id="fontSize" min="20" max="80" value="48">
+                        <span class="value-display" id="fontSizeValue">48px</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>文字位置</label>
+                    <div class="position-grid">
+                        <button class="position-btn" data-position="top-left">左上</button>
+                        <button class="position-btn" data-position="top-center">居中上</button>
+                        <button class="position-btn" data-position="top-right">右上</button>
+                        <button class="position-btn" data-position="middle-left">左中</button>
+                        <button class="position-btn active" data-position="middle-center">居中</button>
+                        <button class="position-btn" data-position="middle-right">右中</button>
+                        <button class="position-btn" data-position="bottom-left">左下</button>
+                        <button class="position-btn" data-position="bottom-center">居中下</button>
+                        <button class="position-btn" data-position="bottom-right">右下</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>文字阴影</label>
+                    <select id="textShadow">
+                        <option value="none">无阴影</option>
+                        <option value="light" selected>轻微阴影</option>
+                        <option value="medium">中等阴影</option>
+                        <option value="strong">强烈阴影</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>背景遮罩</label>
+                    <div class="slider-group">
+                        <input type="range" id="overlay" min="0" max="100" value="30">
+                        <span class="value-display" id="overlayValue">30%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成按钮 -->
+        <button class="generate-btn" id="generateBtn" disabled>生成封面</button>
+
+        <!-- 封面预览 -->
+        <div id="coverPreview">
+            <div class="section">
+                <h2>封面预览</h2>
+                <div class="cover-canvas-container">
+                    <canvas id="coverCanvas"></canvas>
+                </div>
+                <button class="download-btn" id="downloadBtn">下载封面图片</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <h3>联系方式</h3>
+        <div class="contact-info">
+            <div class="contact-item">
+                <p>微信: jokerceshi666</p>
+                <img src="img/wechat_qr.png" alt="微信二维码">
+            </div>
+            <div class="contact-item">
+                <p>公众号: joker测试之路</p>
+                <img src="img/official_qr.png" alt="公众号二维码">
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let uploadedImage = null;
+        let selectedRatio = '900-383';
+        let textPosition = 'middle-center';
+
+        // 元素引用
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const titleText = document.getElementById('titleText');
+        const subtitleText = document.getElementById('subtitleText');
+        const textColor = document.getElementById('textColor');
+        const textColorValue = document.getElementById('textColorValue');
+        const fontSize = document.getElementById('fontSize');
+        const fontSizeValue = document.getElementById('fontSizeValue');
+        const textShadow = document.getElementById('textShadow');
+        const overlay = document.getElementById('overlay');
+        const overlayValue = document.getElementById('overlayValue');
+        const generateBtn = document.getElementById('generateBtn');
+        const coverPreview = document.getElementById('coverPreview');
+        const coverCanvas = document.getElementById('coverCanvas');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // 尺寸选择
+        document.querySelectorAll('.ratio-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.ratio-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedRatio = option.dataset.ratio;
+            });
+        });
+
+        // 上传区域交互
+        uploadArea.addEventListener('click', () => imageInput.click());
+
+        imageInput.addEventListener('change', handleFileSelect);
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('请上传图片文件！');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadedImage = new Image();
+                uploadedImage.onload = () => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    checkGenerateEnabled();
+                };
+                uploadedImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 颜色选择器
+        textColor.addEventListener('input', (e) => {
+            textColorValue.textContent = e.target.value;
+        });
+
+        // 字体大小滑块
+        fontSize.addEventListener('input', (e) => {
+            fontSizeValue.textContent = e.target.value + 'px';
+        });
+
+        // 遮罩滑块
+        overlay.addEventListener('input', (e) => {
+            overlayValue.textContent = e.target.value + '%';
+        });
+
+        // 文字位置选择
+        document.querySelectorAll('.position-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                textPosition = btn.dataset.position;
+            });
+        });
+
+        // 检查是否可以生成
+        function checkGenerateEnabled() {
+            generateBtn.disabled = !(uploadedImage && titleText.value.trim());
+        }
+
+        titleText.addEventListener('input', checkGenerateEnabled);
+
+        // 生成封面
+        generateBtn.addEventListener('click', generateCover);
+
+        function generateCover() {
+            const dimensions = selectedRatio === '900-383' ? { width: 900, height: 383 } : { width: 500, height: 400 };
+
+            coverCanvas.width = dimensions.width;
+            coverCanvas.height = dimensions.height;
+
+            const ctx = coverCanvas.getContext('2d');
+
+            // 绘制背景图片（裁剪并填充）
+            const imgRatio = uploadedImage.width / uploadedImage.height;
+            const canvasRatio = dimensions.width / dimensions.height;
+
+            let drawWidth, drawHeight, offsetX, offsetY;
+
+            if (imgRatio > canvasRatio) {
+                drawHeight = dimensions.height;
+                drawWidth = uploadedImage.width * (dimensions.height / uploadedImage.height);
+                offsetX = (dimensions.width - drawWidth) / 2;
+                offsetY = 0;
+            } else {
+                drawWidth = dimensions.width;
+                drawHeight = uploadedImage.height * (dimensions.width / uploadedImage.width);
+                offsetX = 0;
+                offsetY = (dimensions.height - drawHeight) / 2;
+            }
+
+            ctx.drawImage(uploadedImage, offsetX, offsetY, drawWidth, drawHeight);
+
+            // 绘制遮罩
+            const overlayOpacity = overlay.value / 100;
+            ctx.fillStyle = `rgba(0, 0, 0, ${overlayOpacity})`;
+            ctx.fillRect(0, 0, dimensions.width, dimensions.height);
+
+            // 设置文字样式
+            const size = parseInt(fontSize.value);
+            ctx.font = `bold ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif`;
+            ctx.fillStyle = textColor.value;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 设置文字阴影
+            const shadowValue = textShadow.value;
+            if (shadowValue === 'light') {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+            } else if (shadowValue === 'medium') {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+            } else if (shadowValue === 'strong') {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 4;
+                ctx.shadowOffsetY = 4;
+            }
+
+            // 计算文字位置
+            let x = dimensions.width / 2;
+            let y = dimensions.height / 2;
+
+            const positions = {
+                'top-left': { x: dimensions.width * 0.15, y: dimensions.height * 0.2 },
+                'top-center': { x: dimensions.width / 2, y: dimensions.height * 0.2 },
+                'top-right': { x: dimensions.width * 0.85, y: dimensions.height * 0.2 },
+                'middle-left': { x: dimensions.width * 0.15, y: dimensions.height / 2 },
+                'middle-center': { x: dimensions.width / 2, y: dimensions.height / 2 },
+                'middle-right': { x: dimensions.width * 0.85, y: dimensions.height / 2 },
+                'bottom-left': { x: dimensions.width * 0.15, y: dimensions.height * 0.8 },
+                'bottom-center': { x: dimensions.width / 2, y: dimensions.height * 0.8 },
+                'bottom-right': { x: dimensions.width * 0.85, y: dimensions.height * 0.8 }
+            };
+
+            if (positions[textPosition]) {
+                x = positions[textPosition].x;
+                y = positions[textPosition].y;
+            }
+
+            // 绘制标题
+            const title = titleText.value.trim();
+            const subtitle = subtitleText.value.trim();
+
+            if (subtitle) {
+                // 有副标题时调整位置
+                ctx.fillText(title, x, y - size * 0.6);
+
+                ctx.font = `${size * 0.6}px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif`;
+                ctx.fillText(subtitle, x, y + size * 0.4);
+            } else {
+                ctx.fillText(title, x, y);
+            }
+
+            coverPreview.style.display = 'block';
+            coverPreview.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 下载封面
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `公众号封面_${selectedRatio}_${Date.now()}.png`;
+            link.href = coverCanvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+</body>
+</html>
