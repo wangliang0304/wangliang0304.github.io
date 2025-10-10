@@ -71,6 +71,31 @@
             color: #3498db;
             word-break: break-all;
         }
+        .service-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+        }
+        .service-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        #serviceSelect {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+        }
+        #serviceSelect:focus {
+            outline: none;
+            border-color: #3498db;
+        }
         .history {
             margin-top: 30px;
         }
@@ -163,20 +188,29 @@
 <body>
     <div class="container">
         <h1>短网址转换工具</h1>
-        
+
+        <div class="service-selector">
+            <label for="serviceSelect">选择短链服务:</label>
+            <select id="serviceSelect">
+                <option value="dagd">da.gd (推荐 - 直接跳转)</option>
+                <option value="tinyurl">TinyURL (备用 - 可能有中间页)</option>
+            </select>
+        </div>
+
         <div class="input-group">
+            <label for="longUrl" style="display:none;">长网址</label>
             <input type="url" id="longUrl" placeholder="请输入长网址 (例如: https://example.com/very/long/url...)">
             <button id="convertBtn">转换为短网址</button>
         </div>
-        
+
         <div id="status" class="status"></div>
-        
+
         <div class="result" id="result">
             <p>短网址: <a href="#" id="shortUrl" target="_blank"></a></p>
             <button id="copyBtn" class="action-btn copy-btn">复制链接</button>
             <button id="testBtn" class="action-btn test-btn">测试链接</button>
         </div>
-        
+
         <div class="history">
             <h2>历史记录</h2>
             <table id="historyTable">
@@ -198,78 +232,137 @@
         document.addEventListener('DOMContentLoaded', function() {
             const longUrlInput = document.getElementById('longUrl');
             const convertBtn = document.getElementById('convertBtn');
+            const serviceSelect = document.getElementById('serviceSelect');
             const resultDiv = document.getElementById('result');
             const shortUrlLink = document.getElementById('shortUrl');
             const copyBtn = document.getElementById('copyBtn');
             const testBtn = document.getElementById('testBtn');
             const historyBody = document.getElementById('historyBody');
             const statusDiv = document.getElementById('status');
-            
+
+            // 短链服务配置
+            const shortUrlServices = {
+                dagd: {
+                    name: 'da.gd',
+                    directRedirect: true,
+                    async call(longUrl) {
+                        const response = await fetch(`https://da.gd/s?url=${encodeURIComponent(longUrl)}`);
+                        if (!response.ok) throw new Error('服务响应失败');
+                        const text = await response.text();
+                        return text.trim();
+                    }
+                },
+                tinyurl: {
+                    name: 'TinyURL',
+                    directRedirect: false,
+                    async call(longUrl) {
+                        const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+                        if (!response.ok) throw new Error('服务响应失败');
+                        return await response.text();
+                    }
+                }
+            };
+
+            // 加载用户上次选择的服务
+            const savedService = localStorage.getItem('preferredShortUrlService');
+            if (savedService && shortUrlServices[savedService]) {
+                serviceSelect.value = savedService;
+            }
+
+            // 保存用户选择的服务
+            serviceSelect.addEventListener('change', function() {
+                localStorage.setItem('preferredShortUrlService', this.value);
+            });
+
             // 加载历史记录
             loadHistory();
-            
+
             // 转换按钮点击事件
             convertBtn.addEventListener('click', convertToShortUrl);
-            
+
             // 输入框回车事件
             longUrlInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     convertToShortUrl();
                 }
             });
-            
+
             // 复制按钮点击事件
             copyBtn.addEventListener('click', copyToClipboard);
-            
+
             // 测试按钮点击事件
             testBtn.addEventListener('click', testShortUrl);
-            
-            // 转换长网址为短网址
-            function convertToShortUrl() {
+
+            // 转换长网址为短网址（支持多服务重试）
+            async function convertToShortUrl() {
                 const longUrl = longUrlInput.value.trim();
-                
+
                 // 验证URL
                 if (!isValidUrl(longUrl)) {
                     showStatus('请输入有效的网址 (例如: https://example.com)', 'error');
                     return;
                 }
-                
+
                 convertBtn.disabled = true;
                 convertBtn.textContent = '转换中...';
-                
-                // 使用TinyURL API
-                fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('网络响应不正常');
+
+                const selectedService = serviceSelect.value;
+                const services = [selectedService];
+
+                // 如果主服务失败，自动尝试其他服务
+                Object.keys(shortUrlServices).forEach(key => {
+                    if (key !== selectedService) {
+                        services.push(key);
+                    }
+                });
+
+                let lastError = null;
+
+                for (const serviceKey of services) {
+                    try {
+                        const service = shortUrlServices[serviceKey];
+
+                        if (serviceKey !== selectedService) {
+                            showStatus(`正在尝试备用服务: ${service.name}...`, 'error');
                         }
-                        return response.text();
-                    })
-                    .then(shortUrl => {
-                        if (shortUrl === 'Error') {
-                            throw new Error('无法生成短网址');
+
+                        const shortUrl = await service.call(longUrl);
+
+                        // 验证返回的短链接
+                        if (!shortUrl || shortUrl.includes('Error') || shortUrl.includes('error') || !isValidUrl(shortUrl)) {
+                            throw new Error(`返回无效的短网址: ${shortUrl}`);
                         }
-                        
-                        // 显示结果
+
+                        // 成功生成短网址
                         shortUrlLink.textContent = shortUrl;
                         shortUrlLink.href = shortUrl;
                         resultDiv.style.display = 'block';
-                        
-                        // 保存到历史记录
-                        saveToHistory(longUrl, shortUrl);
-                        
-                        showStatus('短网址生成成功!', 'success');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showStatus('生成短网址失败: ' + error.message, 'error');
-                    })
-                    .finally(() => {
+
+                        // 保存到历史记录（包含服务信息）
+                        saveToHistory(longUrl, shortUrl, service.name);
+
+                        const successMsg = serviceKey === selectedService
+                            ? `短网址生成成功! (${service.name})`
+                            : `已使用备用服务 ${service.name} 生成短网址`;
+                        showStatus(successMsg, 'success');
+
                         convertBtn.disabled = false;
                         convertBtn.textContent = '转换为短网址';
-                    });
+                        return; // 成功后退出
+
+                    } catch (error) {
+                        console.error(`${shortUrlServices[serviceKey].name} 失败:`, error);
+                        lastError = error;
+                        // 继续尝试下一个服务
+                    }
+                }
+
+                // 所有服务都失败
+                showStatus(`所有短链服务均失败: ${lastError?.message || '未知错误'}`, 'error');
+                convertBtn.disabled = false;
+                convertBtn.textContent = '转换为短网址';
             }
-            
+
             // 验证URL格式
             function isValidUrl(string) {
                 try {
@@ -279,7 +372,7 @@
                     return false;
                 }
             }
-            
+
             // 复制到剪贴板
             function copyToClipboard() {
                 const shortUrl = shortUrlLink.textContent;
@@ -291,80 +384,77 @@
                         showStatus('复制失败: ' + err, 'error');
                     });
             }
-            
+
             // 测试短网址
             function testShortUrl() {
                 const shortUrl = shortUrlLink.textContent;
                 window.open(shortUrl, '_blank');
             }
-            
+
             // 保存到历史记录
-            function saveToHistory(longUrl, shortUrl) {
-                let history = [];
-                try {
-                    const storedHistory = localStorage.getItem('shortUrlHistory');
-                    history = storedHistory ? JSON.parse(storedHistory) : [];
-                } catch (e) {
-                    console.error('解析历史记录失败:', e);
-                    history = [];
-                }
-                
+            function saveToHistory(longUrl, shortUrl, serviceName) {
+                const storedHistory = localStorage.getItem('shortUrlHistory');
+                const history = storedHistory ? JSON.parse(storedHistory) : [];
+
                 // 检查是否已存在
                 const existingIndex = history.findIndex(item => item.longUrl === longUrl);
+                const historyItem = {
+                    longUrl,
+                    shortUrl,
+                    service: serviceName,
+                    timestamp: new Date().toISOString()
+                };
+
                 if (existingIndex !== -1) {
-                    history[existingIndex].shortUrl = shortUrl;
+                    history[existingIndex] = historyItem;
                 } else {
-                    history.unshift({ longUrl, shortUrl });
+                    history.unshift(historyItem);
                 }
-                
+
                 // 限制历史记录数量
                 if (history.length > 50) {
-                    history = history.slice(0, 50);
+                    history.splice(50);
                 }
-                
+
                 localStorage.setItem('shortUrlHistory', JSON.stringify(history));
                 loadHistory();
             }
-            
+
             // 加载历史记录
             function loadHistory() {
-                let history = [];
-                try {
-                    const storedHistory = localStorage.getItem('shortUrlHistory');
-                    history = storedHistory ? JSON.parse(storedHistory) : [];
-                } catch (e) {
-                    console.error('解析历史记录失败:', e);
-                    history = [];
-                }
-                
+                const storedHistory = localStorage.getItem('shortUrlHistory');
+                const history = storedHistory ? JSON.parse(storedHistory) : [];
+
                 historyBody.innerHTML = '';
-                
+
                 if (history.length === 0) {
                     historyBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">暂无历史记录</td></tr>';
                     return;
                 }
-                
+
                 history.forEach((item, index) => {
                     const row = document.createElement('tr');
-                    
+
                     const longUrlCell = document.createElement('td');
-                    longUrlCell.textContent = item.longUrl.length > 50 ? item.longUrl.substring(0, 50) + '...' : item.longUrl;
+                    const longUrlText = item.longUrl.length > 50 ? item.longUrl.substring(0, 50) + '...' : item.longUrl;
+                    const serviceTag = item.service ? `<br><small style="color: #7f8c8d;">[${item.service}]</small>` : '';
+                    longUrlCell.innerHTML = `${longUrlText}${serviceTag}`;
                     longUrlCell.title = item.longUrl;
-                    
+
                     const shortUrlCell = document.createElement('td');
                     const shortUrlLink = document.createElement('a');
                     shortUrlLink.href = item.shortUrl;
                     shortUrlLink.textContent = item.shortUrl;
                     shortUrlLink.target = '_blank';
                     shortUrlCell.appendChild(shortUrlLink);
-                    
+
                     const actionCell = document.createElement('td');
-                    
+
                     const testBtn = document.createElement('button');
                     testBtn.textContent = '测试';
                     testBtn.className = 'action-btn test-btn';
                     testBtn.onclick = () => window.open(item.shortUrl, '_blank');
-                    
+
                     const copyBtn = document.createElement('button');
                     copyBtn.textContent = '复制';
                     copyBtn.className = 'action-btn copy-btn';
@@ -373,53 +463,47 @@
                             .then(() => showStatus('已复制到剪贴板', 'success'))
                             .catch(err => showStatus('复制失败: ' + err, 'error'));
                     };
-                    
+
                     const deleteBtn = document.createElement('button');
                     deleteBtn.textContent = '删除';
                     deleteBtn.className = 'action-btn delete-btn';
                     deleteBtn.onclick = () => deleteHistoryItem(index);
-                    
+
                     actionCell.appendChild(testBtn);
                     actionCell.appendChild(copyBtn);
                     actionCell.appendChild(deleteBtn);
-                    
+
                     row.appendChild(longUrlCell);
                     row.appendChild(shortUrlCell);
                     row.appendChild(actionCell);
-                    
+
                     historyBody.appendChild(row);
                 });
             }
-            
+
             // 删除历史记录项
             function deleteHistoryItem(index) {
-                let history = [];
-                try {
-                    const storedHistory = localStorage.getItem('shortUrlHistory');
-                    history = storedHistory ? JSON.parse(storedHistory) : [];
-                } catch (e) {
-                    console.error('解析历史记录失败:', e);
-                    history = [];
-                }
-                
+                const storedHistory = localStorage.getItem('shortUrlHistory');
+                const history = storedHistory ? JSON.parse(storedHistory) : [];
+
                 history.splice(index, 1);
                 localStorage.setItem('shortUrlHistory', JSON.stringify(history));
                 loadHistory();
                 showStatus('已删除历史记录', 'success');
             }
-            
+
             // 显示状态消息
             function showStatus(message, type) {
                 statusDiv.textContent = message;
                 statusDiv.className = `status ${type}`;
                 statusDiv.style.display = 'block';
-                
+
                 // 3秒后自动隐藏
                 setTimeout(() => {
                     statusDiv.style.display = 'none';
                 }, 3000);
             }
-            
+
             // 输入框自动清除无效输入
             longUrlInput.addEventListener('blur', function() {
                 const url = this.value.trim();
